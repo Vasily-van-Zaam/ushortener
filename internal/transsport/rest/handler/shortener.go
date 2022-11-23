@@ -48,11 +48,11 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			res, err := h.service.SetURL(ctx, strings.TrimSpace(string(body)))
-			if err != nil {
-				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
-				return
-			}
+			res, _ := h.service.SetURL(ctx, strings.TrimSpace(string(body)))
+			// if err != nil {
+			// 	http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+			// 	return
+			// }
 			w.WriteHeader(http.StatusCreated)
 			w.Write([]byte(res))
 
@@ -64,12 +64,12 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 			if len(url) >= 1 {
 				link = url[1]
 			}
-			res, err := h.service.GetURL(ctx, strings.TrimSpace(link))
+			res, _ := h.service.GetURL(ctx, strings.TrimSpace(link))
 
-			if err != nil {
-				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
-				return
-			}
+			// if err != nil {
+			// 	http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+			// 	return
+			// }
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			w.Write([]byte(res))
 

@@ -55,6 +55,7 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
 				return
 			}
+			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusCreated)
 			w.Write([]byte(res))
 
@@ -72,8 +73,10 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
 				return
 			}
+
+			w.Header().Set("Location", string(res))
 			w.WriteHeader(http.StatusTemporaryRedirect)
-			w.Write([]byte(res))
+			w.Write([]byte(""))
 
 		}
 	default:

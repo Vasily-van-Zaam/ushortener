@@ -42,7 +42,9 @@ func (h *ShortenerHandler) GetSetUrl(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if len(body) == 0 {
-				http.Error(w, "body cannot be empty", http.StatusBadRequest)
+				// http.Error(w, "body cannot be empty", http.StatusBadRequest)
+				w.WriteHeader(http.StatusCreated)
+				w.Write([]byte(""))
 				return
 			}
 
@@ -51,8 +53,9 @@ func (h *ShortenerHandler) GetSetUrl(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
 				return
 			}
-			w.Write([]byte(res))
 			w.WriteHeader(http.StatusCreated)
+			w.Write([]byte(res))
+
 		}
 	case "GET":
 		{

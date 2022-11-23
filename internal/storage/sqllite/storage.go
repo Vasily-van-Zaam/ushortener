@@ -54,7 +54,7 @@ func (s *SomeStorage) SetUrl(ctx context.Context, link string) (string, error) {
 	// 	"n", "N", "o", "O", "p", "P", "q", "Q", "r", "R", "s", "S", "t", "T",
 	// 	"u", "U", "v", "V", "x", "X", "w", "W", "y", "Y", "z",
 	// }
-	// log.Println(symbols)
+
 	var resId any
 
 	searchLink := s.db.QueryRowContext(ctx, `
@@ -67,7 +67,7 @@ func (s *SomeStorage) SetUrl(ctx context.Context, link string) (string, error) {
 	if err != nil {
 		log.Println("errorSelectSqlLitePost", err, linkDb)
 	}
-	log.Println("==========", linkDb)
+
 	if linkDb.Id != 0 {
 		return fmt.Sprint(core.MAINDOMAIN, linkDb.Id), nil
 	}
@@ -78,7 +78,6 @@ func (s *SomeStorage) SetUrl(ctx context.Context, link string) (string, error) {
 		log.Println("errorInsertSqlLitePost", err)
 	}
 	resId, _ = res.LastInsertId()
-	log.Println("===", resId)
 
-	return fmt.Sprint(core.MAINDOMAIN , resId), nil
+	return fmt.Sprint(core.MAINDOMAIN, resId), nil
 }

@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("sqlite3", "store.db")
+	db, err := sql.Open("sqlite3", "store_shortener.db")
 	if err != nil {
 		panic(err)
 	}
@@ -23,8 +23,12 @@ func main() {
 	service := service.NewService(storage)
 	handlers := handler.NewHandlers(handler.NewShortenerHandler(service))
 	server, routerError := rest.NewServer(handlers)
-
-	log.Println("routerError:", routerError)
+	if routerError != nil {
+		log.Println("routerError:", routerError)
+	}
 	errorServer := server.Run(":8080")
-	log.Println("errorServer:", errorServer)
+	if errorServer != nil {
+		log.Println("errorServer:", errorServer)
+	}
+
 }

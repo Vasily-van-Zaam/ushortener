@@ -17,15 +17,15 @@ type SomeStorage struct {
 
 func New(db *sql.DB) *SomeStorage {
 
-	_, errExec := db.Exec(`
-	CREATE TABLE IF NOT EXISTS links(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		link TEXT UNIQUE,
-		short_link char(255) UNIQUE
-	);`)
-	if errExec != nil {
-		log.Println("errExec: ", errExec.Error())
-	}
+	// _, errExec := db.Exec(`
+	// CREATE TABLE IF NOT EXISTS links(
+	// 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	// 	link TEXT UNIQUE,
+	// 	short_link char(255) UNIQUE
+	// );`)
+	// if errExec != nil {
+	// 	log.Println("errExec: ", errExec.Error())
+	// }
 
 	return &SomeStorage{
 		db: db,
@@ -71,13 +71,13 @@ func (s *SomeStorage) SetURL(ctx context.Context, link string) (string, error) {
 	if linkDB.ID != 0 {
 		return fmt.Sprint(core.MAINDOMAIN, linkDB.ID), nil
 	}
-	res, err := s.db.ExecContext(ctx, `
-	INSERT INTO links (link) VALUES ($link);
-	`, link)
-	if err != nil {
-		log.Println("errorInsertSqlLitePost", err)
-	}
-	resID, _ = res.LastInsertId()
+	// res, err := s.db.ExecContext(ctx, `
+	// INSERT INTO links (link) VALUES ($link);
+	// `, link)
+	// if err != nil {
+	// 	log.Println("errorInsertSqlLitePost", err)
+	// }
+	// resID, _ = res.LastInsertId()
 
 	return fmt.Sprint(core.MAINDOMAIN, resID), nil
 }

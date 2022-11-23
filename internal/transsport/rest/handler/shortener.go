@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
 type ShortenerService interface {
@@ -44,15 +46,15 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 			if len(body) == 0 {
 				// http.Error(w, "body cannot be empty", http.StatusBadRequest)
 				w.WriteHeader(http.StatusCreated)
-				w.Write([]byte(""))
+				w.Write([]byte(core.MAINDOMAIN))
 				return
 			}
 
 			res, _ := h.service.SetURL(ctx, strings.TrimSpace(string(body)))
-			// if err != nil {
-			// 	http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
-			// 	return
-			// }
+			if err != nil {
+				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+				return
+			}
 			w.WriteHeader(http.StatusCreated)
 			w.Write([]byte(res))
 
@@ -64,12 +66,12 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 			if len(url) >= 1 {
 				link = url[1]
 			}
-			res, _ := h.service.GetURL(ctx, strings.TrimSpace(link))
+			res, err := h.service.GetURL(ctx, strings.TrimSpace(link))
 
-			// if err != nil {
-			// 	http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
-			// 	return
-			// }
+			if err != nil {
+				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+				return
+			}
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			w.Write([]byte(res))
 

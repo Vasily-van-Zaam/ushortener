@@ -1,6 +1,6 @@
 package core
 
-const MAINDOMAIN = "https://some-domain.com/"
+const MAINDOMAIN = "http://localhost:8080/"
 
 type Link struct {
 	ID        int    `db:"id" json:"id"`

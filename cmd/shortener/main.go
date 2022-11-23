@@ -1,28 +1,34 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 
+	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/Vasily-van-Zaam/ushortener/internal/service"
-	some_storage "github.com/Vasily-van-Zaam/ushortener/internal/storage/some"
+	litestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/sqllite"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transsport/rest"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transsport/rest/handler"
 )
 
-func test() chan string {
-	return make(chan string)
-}
-
-func test2(t chan string) chan string {
-	return t
-}
-
 func main() {
-	service := service.NewService(some_storage.New())
+	db, err := sql.Open("sqlite3", "store_shortener.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	storage := litestore.New(db)
+
+	service := service.NewService(storage)
 	handlers := handler.NewHandlers(handler.NewShortenerHandler(service))
 	server, routerError := rest.NewServer(handlers)
-
-	log.Println("routerError:", routerError)
+	if routerError != nil {
+		log.Println("routerError:", routerError)
+	}
 	errorServer := server.Run(":8080")
-	log.Println("errorServer:", errorServer)
+	if errorServer != nil {
+		log.Println("errorServer:", errorServer)
+	}
+
 }

@@ -18,8 +18,17 @@ func NewService(s ShortenerStorage) *Service {
 }
 
 func (s *Service) GetUrl(ctx context.Context, link string) (string, error) {
-	return link, nil
+	res, err := s.storage.GetUrl(ctx, link)
+	if err != nil {
+		return "null", err
+	}
+	return res, nil
 }
 func (s *Service) SetUrl(ctx context.Context, link string) (string, error) {
-	return "1234", nil
+	res, err := s.storage.SetUrl(ctx, link)
+
+	if err != nil {
+		return "null", err
+	}
+	return res, nil
 }

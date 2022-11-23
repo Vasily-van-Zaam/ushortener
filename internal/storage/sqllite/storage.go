@@ -1,4 +1,4 @@
-package sqllite_storage
+package litestore
 
 import (
 	"context"

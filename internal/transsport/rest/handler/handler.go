@@ -14,8 +14,8 @@ func NewHandlers(shortener *ShortenerHandler) *Handlers {
 }
 
 func (h *Handlers) InitAPI(r *http.ServeMux) {
-	r.HandleFunc("/", h.shortener.GetSetUrl)
-	// r.HandleFunc("/", h.shortener.SetUrl)
+	r.HandleFunc("/", h.shortener.GetSetURL)
+	// r.HandleFunc("/", h.shortener.SetURL)
 
 	// r.GET("/v1/search", h.Search.Query)
 	// r.GET("/v1/suggestion", h.Search.Suggestion)

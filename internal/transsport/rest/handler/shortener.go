@@ -9,8 +9,8 @@ import (
 )
 
 type ShortenerService interface {
-	GetUrl(ctx context.Context, link string) (string, error)
-	SetUrl(ctx context.Context, link string) (string, error)
+	GetURL(ctx context.Context, link string) (string, error)
+	SetURL(ctx context.Context, link string) (string, error)
 }
 
 type ShortenerHandler struct {
@@ -23,7 +23,7 @@ func NewShortenerHandler(s ShortenerService) *ShortenerHandler {
 	}
 }
 
-func (h *ShortenerHandler) GetSetUrl(w http.ResponseWriter, r *http.Request) {
+func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	switch r.Method {
@@ -48,7 +48,7 @@ func (h *ShortenerHandler) GetSetUrl(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			res, err := h.service.SetUrl(ctx, strings.TrimSpace(string(body)))
+			res, err := h.service.SetURL(ctx, strings.TrimSpace(string(body)))
 			if err != nil {
 				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
 				return
@@ -64,7 +64,7 @@ func (h *ShortenerHandler) GetSetUrl(w http.ResponseWriter, r *http.Request) {
 			if len(url) >= 1 {
 				link = url[1]
 			}
-			res, err := h.service.GetUrl(ctx, strings.TrimSpace(link))
+			res, err := h.service.GetURL(ctx, strings.TrimSpace(link))
 
 			if err != nil {
 				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)

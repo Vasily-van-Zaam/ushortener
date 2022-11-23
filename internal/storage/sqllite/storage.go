@@ -31,22 +31,22 @@ func New(db *sql.DB) *SomeStorage {
 		db: db,
 	}
 }
-func (s *SomeStorage) GetUrl(ctx context.Context, id string) (string, error) {
+func (s *SomeStorage) GetURL(ctx context.Context, id string) (string, error) {
 
 	res := s.db.QueryRowContext(ctx, `
 	SELECT * FROM links WHERE id=$1;
 	`, id)
-	linkDb := core.Link{}
-	err := res.Scan(&linkDb.Id, &linkDb.Link, &linkDb.ShortLink)
+	linkDB := core.Link{}
+	err := res.Scan(&linkDB.ID, &linkDB.Link, &linkDB.ShortLink)
 	if err != nil {
-		log.Println("errorSelectSSqlLiteGet", err, linkDb)
+		log.Println("errorSelectSSqlLiteGet", err, linkDB)
 	}
-	if linkDb.Id == 0 {
+	if linkDB.ID == 0 {
 		return "", errors.New("not Found")
 	}
-	return fmt.Sprint(linkDb.Link), nil
+	return fmt.Sprint(linkDB.Link), nil
 }
-func (s *SomeStorage) SetUrl(ctx context.Context, link string) (string, error) {
+func (s *SomeStorage) SetURL(ctx context.Context, link string) (string, error) {
 	// symbols := []string{
 	// 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
 	// 	"a", "A", "b", "B", "c", "C", "d", "D", "e", "E", "f", "F", "g", "G",
@@ -55,21 +55,21 @@ func (s *SomeStorage) SetUrl(ctx context.Context, link string) (string, error) {
 	// 	"u", "U", "v", "V", "x", "X", "w", "W", "y", "Y", "z",
 	// }
 
-	var resId any
+	var resID any
 
 	searchLink := s.db.QueryRowContext(ctx, `
 	SELECT * FROM links WHERE link=$1;
 	`, link)
 
-	linkDb := core.Link{}
+	linkDB := core.Link{}
 
-	err := searchLink.Scan(&linkDb.Id, &linkDb.Link, &linkDb.ShortLink)
+	err := searchLink.Scan(&linkDB.ID, &linkDB.Link, &linkDB.ShortLink)
 	if err != nil {
-		log.Println("errorSelectSqlLitePost", err, linkDb)
+		log.Println("errorSelectSqlLitePost", err, linkDB)
 	}
 
-	if linkDb.Id != 0 {
-		return fmt.Sprint(core.MAINDOMAIN, linkDb.Id), nil
+	if linkDB.ID != 0 {
+		return fmt.Sprint(core.MAINDOMAIN, linkDB.ID), nil
 	}
 	res, err := s.db.ExecContext(ctx, `
 	INSERT INTO links (link) VALUES ($link);
@@ -77,7 +77,7 @@ func (s *SomeStorage) SetUrl(ctx context.Context, link string) (string, error) {
 	if err != nil {
 		log.Println("errorInsertSqlLitePost", err)
 	}
-	resId, _ = res.LastInsertId()
+	resID, _ = res.LastInsertId()
 
-	return fmt.Sprint(core.MAINDOMAIN, resId), nil
+	return fmt.Sprint(core.MAINDOMAIN, resID), nil
 }

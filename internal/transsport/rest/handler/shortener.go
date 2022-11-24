@@ -31,11 +31,11 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 		{
-			ct := r.Header.Values("Content-Type")
-			if len(ct) > 0 && ct[0] != "text/plain" {
-				http.Error(w, "body mast be text/plain", http.StatusBadRequest)
-				return
-			}
+			// ct := r.Header.Values("Content-Type")
+			// if len(ct) > 0 && ct[0] != "text/plain" {
+			// 	http.Error(w, "body mast be text/plain", http.StatusBadRequest)
+			// 	return
+			// }
 
 			body, err := io.ReadAll(r.Body)
 			if err != nil {
@@ -55,6 +55,7 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
 				return
 			}
+			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusCreated)
 			w.Write([]byte(res))
 
@@ -72,6 +73,8 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
 				return
 			}
+
+			w.Header().Set("Location", string(res))
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			w.Write([]byte(res))
 

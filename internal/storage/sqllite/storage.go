@@ -39,7 +39,7 @@ func (s *SomeStorage) GetURL(ctx context.Context, id string) (string, error) {
 	linkDB := core.Link{}
 	err := res.Scan(&linkDB.ID, &linkDB.Link, &linkDB.ShortLink)
 	if err != nil {
-		log.Println("errorSelectSSqlLiteGet", err, linkDB)
+		log.Println("errorSelectSqlLiteGet", err, linkDB)
 	}
 	if linkDB.ID == 0 {
 		return "", errors.New("not Found")

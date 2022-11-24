@@ -57,7 +57,7 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 			}
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusCreated)
-			w.Write([]byte("short" + res))
+			w.Write([]byte(res))
 
 		}
 	case "GET":
@@ -76,7 +76,7 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 
 			w.Header().Set("Location", string(res))
 			w.WriteHeader(http.StatusTemporaryRedirect)
-			w.Write([]byte(""))
+			w.Write([]byte(res))
 
 		}
 	default:

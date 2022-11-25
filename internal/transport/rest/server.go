@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
+	"github.com/go-chi/chi/v5"
 )
 
 type Router interface {
@@ -12,11 +13,11 @@ type Router interface {
 }
 
 type Server struct {
-	router *http.ServeMux
+	router *chi.Mux
 }
 
 func NewServer(h *handler.Handlers) (Router, error) {
-	r := http.NewServeMux()
+	r := chi.NewRouter()
 	h.InitAPI(r)
 	return &Server{
 		router: r,

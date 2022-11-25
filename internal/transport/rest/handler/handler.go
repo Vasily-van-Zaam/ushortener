@@ -1,6 +1,8 @@
 package handler
 
-import "net/http"
+import (
+	"github.com/go-chi/chi/v5"
+)
 
 type Handlers struct {
 	shortener *ShortenerHandler
@@ -13,17 +15,10 @@ func NewHandlers(shortener *ShortenerHandler) *Handlers {
 	}
 }
 
-func (h *Handlers) InitAPI(r *http.ServeMux) {
+func (h *Handlers) InitAPI(r *chi.Mux) {
 
-	r.HandleFunc("/", h.shortener.GetSetURL)
-	// r.HandleFunc("/", h.shortener.GetSetURL)
-	// r.HandleFunc("/", h.shortener.SetURL)
-	// r.HandleFunc("/", h.shortener.SetURL)
-
-	// r.GET("/v1/search", h.Search.Query)
-	// r.GET("/v1/suggestion", h.Search.Suggestion)
-	// r.POST("/v1/import-from-url", h.Search.ImportXmlFromUrl)
-	// r.GET("/v1/by-ids", h.Search.GetProducts)
-	// r.GET("/v1/get-file", h.Search.GetFileXml)
+	r.Get("/", h.shortener.GetURL)
+	r.Get("/{id}", h.shortener.GetURL)
+	r.Post("/", h.shortener.SetURL)
 
 }

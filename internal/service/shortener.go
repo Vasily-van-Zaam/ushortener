@@ -3,7 +3,7 @@ package service
 import "context"
 
 type ShortenerStorage interface {
-	GetURL(ctx context.Context, link string) (string, error)
+	GetURL(ctx context.Context, id string) (string, error)
 	SetURL(ctx context.Context, link string) (string, error)
 }
 
@@ -17,8 +17,8 @@ func NewService(s ShortenerStorage) *Service {
 	}
 }
 
-func (s *Service) GetURL(ctx context.Context, link string) (string, error) {
-	res, err := s.storage.GetURL(ctx, link)
+func (s *Service) GetURL(ctx context.Context, id string) (string, error) {
+	res, err := s.storage.GetURL(ctx, id)
 	if err != nil {
 		return "null", err
 	}

@@ -8,8 +8,8 @@ import (
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/service"
 	litestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/sqllite"
-	"github.com/Vasily-van-Zaam/ushortener/internal/transsport/rest"
-	"github.com/Vasily-van-Zaam/ushortener/internal/transsport/rest/handler"
+	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest"
+	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
 )
 
 func main() {

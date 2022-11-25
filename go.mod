@@ -3,6 +3,7 @@ module github.com/Vasily-van-Zaam/ushortener
 go 1.19
 
 require (
+	github.com/go-chi/chi/v5 v5.0.7
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/stretchr/testify v1.8.1
 )

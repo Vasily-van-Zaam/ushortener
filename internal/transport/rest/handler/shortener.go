@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+	"github.com/go-chi/chi/v5"
 )
 
 type ShortenerService interface {
@@ -25,6 +26,7 @@ func NewShortenerHandler(s ShortenerService) *ShortenerHandler {
 	}
 }
 
+// deprecated
 func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
@@ -87,4 +89,45 @@ func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+}
+
+func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	link := chi.URLParam(r, "id")
+
+	res, err := h.service.GetURL(ctx, strings.TrimSpace(link))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Location", string(res))
+	w.WriteHeader(http.StatusTemporaryRedirect)
+	w.Write([]byte(res))
+}
+
+func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	if len(body) == 0 {
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(core.MAINDOMAIN))
+		return
+	}
+
+	res, err := h.service.SetURL(ctx, strings.TrimSpace(string(body)))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(res))
 }

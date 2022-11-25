@@ -12,9 +12,11 @@ import (
 	"testing"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
 
+// /// mock
 type ServiceMock struct {
 }
 
@@ -182,10 +184,10 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 			h := &ShortenerHandler{
 				service: tt.fields.service,
 			}
-
-			s := http.HandlerFunc(h.GetSetURL)
-
-			s.ServeHTTP(tt.args.w, tt.args.r)
+			r := chi.NewRouter()
+			hs := NewHandlers(h)
+			hs.InitAPI(r)
+			r.ServeHTTP(tt.args.w, tt.args.r)
 
 			///////// chech response //////////
 			res := tt.args.w.Result()
@@ -197,7 +199,8 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 			}
 			assert.Equal(t, tt.want.code, res.StatusCode)
 			assert.Equal(t, tt.want.response, string(resBody))
-			log.Println(tt.name)
+
+			log.Println(tt.name, string(resBody), res.StatusCode)
 
 		})
 	}

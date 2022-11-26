@@ -26,71 +26,17 @@ func NewShortenerHandler(s ShortenerService) *ShortenerHandler {
 	}
 }
 
-// deprecated
-func (h *ShortenerHandler) GetSetURL(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-
-	switch r.Method {
-	case "POST":
-		{
-			// ct := r.Header.Values("Content-Type")
-			// if len(ct) > 0 && ct[0] != "text/plain" {
-			// 	http.Error(w, "body mast be text/plain", http.StatusBadRequest)
-			// 	return
-			// }
-
-			body, err := io.ReadAll(r.Body)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
-				return
-			}
-
-			if len(body) == 0 {
-				// http.Error(w, "body cannot be empty", http.StatusBadRequest)
-				w.WriteHeader(http.StatusCreated)
-				w.Write([]byte(core.MAINDOMAIN))
-				return
-			}
-
-			res, err := h.service.SetURL(ctx, strings.TrimSpace(string(body)))
-			if err != nil {
-				http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
-				return
-			}
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusCreated)
-			w.Write([]byte(res))
-
-		}
-	case "GET":
-		{
-			url := strings.Split(r.URL.Path, "/")
-			link := "/"
-			if len(url) >= 1 {
-				link = url[1]
-			}
-
-			res, err := h.service.GetURL(ctx, strings.TrimSpace(link))
-
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			w.Header().Set("Location", string(res))
-			w.WriteHeader(http.StatusTemporaryRedirect)
-			w.Write([]byte(res))
-
-		}
-	default:
-		{
-			http.Error(w, fmt.Sprintf("method %s not supported", r.Method), http.StatusBadRequest)
-			return
-		}
-	}
-
-}
-
+// GetURL godoc
+// @Summary      Get link shortener
+// @Description  get shortener link by ID
+// @Tags         Get or set shortener link
+// @Accept       plain
+// @Produce      plain
+// @Param        id   path      string  true  "link ID"
+// @Success		 307  {string}  "redirect response"
+// @Header		 307 {string}  Location "https://some.com/link"
+// @Failure      400  {string} 	"error"
+// @Router       /{id} [get]
 func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
@@ -108,6 +54,17 @@ func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(res))
 }
 
+// SetURL godoc
+// @Summary      Set link shortener
+// @Description  set shortener link
+// @Tags         Get or set shortener link
+// @Accept       plain
+// @Produce      plain
+// @Param        link   body     string  true  "your site link"
+// @Success		 201  {string}  "http://localhost:8080/1"
+// @Header		 307 {string}  Location "https://some.com/link"
+// @Failure      400  {string} 	"error"
+// @Router       / [post]
 func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	body, err := io.ReadAll(r.Body)

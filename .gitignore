@@ -23,3 +23,4 @@ vendor/
 .vscode
 store_shortener.db
 .DS_Store
+cmd/shortener/store_shortener.db

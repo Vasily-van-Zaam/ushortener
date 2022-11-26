@@ -1,7 +1,9 @@
 package handler
 
 import (
+	_ "github.com/Vasily-van-Zaam/ushortener/docs"
 	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Handlers struct {
@@ -16,6 +18,8 @@ func NewHandlers(shortener *ShortenerHandler) *Handlers {
 }
 
 func (h *Handlers) InitAPI(r *chi.Mux) {
+
+	r.Get("/swagger-docs/*", httpSwagger.Handler())
 
 	r.Get("/", h.shortener.GetURL)
 	r.Get("/{id}", h.shortener.GetURL)

@@ -32,3 +32,6 @@ git fetch template && git checkout template/main .github
 Например в ветке с названием `iter4` запустятся автотесты для итераций с первой по четвертую.
 
 При мерже ветки с итерацией в основную ветку (`main`) будут запускаться все автотесты.
+
+
+~/go/bin/mockgen -destination ./internal/transport/rest/handler/mock/mock_handler.go -package=mock -source=./internal/transport/rest/handler/shortener.go

@@ -26,7 +26,7 @@ const docTemplate = `{
                     "text/plain"
                 ],
                 "tags": [
-                    "Get or set shortener link"
+                    "Main"
                 ],
                 "summary": "Set link shortener",
                 "parameters": [
@@ -56,6 +56,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/shorten": {
+            "post": {
+                "description": "set shortener link 1",
+                "consumes": [
+                    "text/plain"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "API"
+                ],
+                "summary": "Api Set link shortener",
+                "parameters": [
+                    {
+                        "description": "Body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/core.RequestApiShorten"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/core.ResponseApiShorten"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/{id}": {
             "get": {
                 "description": "get shortener link by ID",
@@ -66,7 +106,7 @@ const docTemplate = `{
                     "text/plain"
                 ],
                 "tags": [
-                    "Get or set shortener link"
+                    "Main"
                 ],
                 "summary": "Get link shortener",
                 "parameters": [
@@ -97,6 +137,24 @@ const docTemplate = `{
                             "type": "string"
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "core.RequestApiShorten": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "core.ResponseApiShorten": {
+            "type": "object",
+            "properties": {
+                "result": {
+                    "type": "string"
                 }
             }
         }

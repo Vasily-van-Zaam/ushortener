@@ -2,8 +2,10 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 
@@ -26,10 +28,9 @@ func NewShortenerHandler(s ShortenerService) *ShortenerHandler {
 	}
 }
 
-// GetURL godoc
+// @Tags         Main
 // @Summary      Get link shortener
 // @Description  get shortener link by ID
-// @Tags         Get or set shortener link
 // @Accept       plain
 // @Produce      plain
 // @Param        id   path      string  true  "link ID"
@@ -54,15 +55,13 @@ func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(res))
 }
 
-// SetURL godoc
+// @Tags         Main
 // @Summary      Set link shortener
 // @Description  set shortener link
-// @Tags         Get or set shortener link
 // @Accept       plain
 // @Produce      plain
 // @Param        link   body     string  true  "your site link"
 // @Success		 201  {string}  "http://localhost:8080/1"
-// @Header		 307 {string}  Location "https://some.com/link"
 // @Failure      400  {string} 	"error"
 // @Router       / [post]
 func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
@@ -87,4 +86,45 @@ func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(res))
+}
+
+// @Tags         API
+// @Summary      Api Set link shortener
+// @Description  set shortener link 1
+// @Accept       plain
+// @Produce      plain
+// @Param        body body core.RequestApiShorten true "Body"
+// @Success		 200  {object} core.ResponseApiShorten
+// @Failure      400  {string} 	"error"
+// @Router       /api/shorten [post]
+func (h *ShortenerHandler) ApiSetShorten(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		////
+		////
+	}
+	query := core.RequestApiShorten{}
+	responseApi := &core.ResponseApiShorten{}
+	err = json.Unmarshal(body, &query)
+	if err != nil {
+
+	} else {
+		res, err := h.service.SetURL(ctx, strings.TrimSpace(string(query.Url)))
+		if err != nil {
+		}
+		responseApi.Result = res
+	}
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	response, _ := json.Marshal(responseApi)
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write(response)
+	log.Println("==", query.Url)
 }

@@ -1,3 +1,14 @@
+definitions:
+  core.RequestApiShorten:
+    properties:
+      url:
+        type: string
+    type: object
+  core.ResponseApiShorten:
+    properties:
+      result:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -26,7 +37,7 @@ paths:
             type: string
       summary: Set link shortener
       tags:
-      - Get or set shortener link
+      - Main
   /{id}:
     get:
       consumes:
@@ -55,5 +66,31 @@ paths:
             type: string
       summary: Get link shortener
       tags:
-      - Get or set shortener link
+      - Main
+  /api/shorten:
+    post:
+      consumes:
+      - text/plain
+      description: set shortener link 1
+      parameters:
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/core.RequestApiShorten'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/core.ResponseApiShorten'
+        "400":
+          description: error
+          schema:
+            type: string
+      summary: Api Set link shortener
+      tags:
+      - API
 swagger: "2.0"

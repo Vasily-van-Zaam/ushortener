@@ -7,3 +7,11 @@ type Link struct {
 	Link      string `db:"link" json:"link"`
 	ShortLink string `db:"short_link" json:"short_link"`
 }
+
+type RequestApiShorten struct {
+	Url string `json:"url"`
+}
+
+type ResponseApiShorten struct {
+	Result string `json:"result"`
+}

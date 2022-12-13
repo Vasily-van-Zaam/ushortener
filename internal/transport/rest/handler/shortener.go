@@ -110,7 +110,7 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 
 	} else {
-		res, err := h.service.SetURL(ctx, strings.TrimSpace(string(query.Url)))
+		res, err := h.service.SetURL(ctx, strings.TrimSpace(string(query.URL)))
 		if err != nil {
 		}
 		responseApi.Result = res
@@ -126,5 +126,5 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(200)
 	w.Write(response)
-	log.Println("==", query.Url)
+	log.Println("==", query.URL)
 }

@@ -9,7 +9,7 @@ type Link struct {
 }
 
 type RequestApiShorten struct {
-	Url string `json:"url"`
+	URL string `json:"url"`
 }
 
 type ResponseApiShorten struct {

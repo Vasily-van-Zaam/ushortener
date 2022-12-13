@@ -97,7 +97,7 @@ func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 // @Success		 200  {object} core.ResponseApiShorten
 // @Failure      400  {string} 	"error"
 // @Router       /api/shorten [post]
-func (h *ShortenerHandler) ApiSetShorten(w http.ResponseWriter, r *http.Request) {
+func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

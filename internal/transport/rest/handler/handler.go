@@ -24,6 +24,6 @@ func (h *Handlers) InitAPI(r *chi.Mux) {
 	r.Get("/", h.shortener.GetURL)
 	r.Get("/{id}", h.shortener.GetURL)
 	r.Post("/", h.shortener.SetURL)
-	r.Post("/api/shorten", h.shortener.ApiSetShorten)
+	r.Post("/api/shorten", h.shortener.APISetShorten)
 
 }

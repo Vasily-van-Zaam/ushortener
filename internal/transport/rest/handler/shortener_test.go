@@ -228,7 +228,7 @@ func TestShortenerHandler_ApiSetShorten(t *testing.T) {
 			h := &ShortenerHandler{
 				service: tt.fields.service,
 			}
-			h.ApiSetShorten(tt.args.w, tt.args.r)
+			h.APISetShorten(tt.args.w, tt.args.r)
 		})
 	}
 }

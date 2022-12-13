@@ -8,10 +8,10 @@ type Link struct {
 	ShortLink string `db:"short_link" json:"short_link"`
 }
 
-type RequestApiShorten struct {
+type RequestAPIShorten struct {
 	URL string `json:"url"`
 }
 
-type ResponseApiShorten struct {
+type ResponseAPIShorten struct {
 	Result string `json:"result"`
 }

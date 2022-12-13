@@ -124,7 +124,7 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	response, _ := json.Marshal(responseApi)
 
 	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(200)
+	w.WriteHeader(201)
 	w.Write(response)
 	log.Println("==", query.URL)
 }

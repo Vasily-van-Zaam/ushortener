@@ -30,13 +30,13 @@ func New(conf *core.Config) (*Filestore, error) {
 }
 
 func (s *Filestore) GetURL(ctx context.Context, id string) (string, error) {
-	
+
 	return "", nil
 }
 func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
 	return "", nil
 }
 
-func (f *Filestore) Close() error {
-	return f.File.Close()
+func (s *Filestore) Close() error {
+	return s.File.Close()
 }

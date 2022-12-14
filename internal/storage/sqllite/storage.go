@@ -1,4 +1,4 @@
-package litestore
+package sqlitestore
 
 import (
 	"context"
@@ -11,12 +11,16 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type SomeStorage struct {
-	db *sql.DB
+type Sqlitestore struct {
+	db     *sql.DB
+	config *core.Config
 }
 
-func New(db *sql.DB) *SomeStorage {
-
+func New(conf *core.Config) (*Sqlitestore, error) {
+	db, err := sql.Open("sqlite3", conf.SqliteDB)
+	if err != nil {
+		panic(err)
+	}
 	_, errExec := db.Exec(`
 	CREATE TABLE IF NOT EXISTS links(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,11 +31,12 @@ func New(db *sql.DB) *SomeStorage {
 		log.Println("errExec: ", errExec.Error())
 	}
 
-	return &SomeStorage{
-		db: db,
-	}
+	return &Sqlitestore{
+		db:     db,
+		config: conf,
+	}, nil
 }
-func (s *SomeStorage) GetURL(ctx context.Context, id string) (string, error) {
+func (s *Sqlitestore) GetURL(ctx context.Context, id string) (string, error) {
 
 	res := s.db.QueryRowContext(ctx, `
 	SELECT * FROM links WHERE id=$1;
@@ -46,8 +51,8 @@ func (s *SomeStorage) GetURL(ctx context.Context, id string) (string, error) {
 	}
 	return fmt.Sprint(linkDB.Link), nil
 }
-func (s *SomeStorage) SetURL(ctx context.Context, link string) (string, error) {
-	
+func (s *Sqlitestore) SetURL(ctx context.Context, link string) (string, error) {
+
 	var resID any
 	searchLink := s.db.QueryRowContext(ctx, `
 	SELECT * FROM links WHERE link=$1;
@@ -61,7 +66,7 @@ func (s *SomeStorage) SetURL(ctx context.Context, link string) (string, error) {
 	}
 
 	if linkDB.ID != 0 {
-		return fmt.Sprint(core.MAINDOMAIN, linkDB.ID), nil
+		return fmt.Sprint(s.config.BaseURL, "/", linkDB.ID), nil
 	}
 	res, err := s.db.ExecContext(ctx, `
 	INSERT INTO links (link) VALUES ($link);
@@ -71,5 +76,9 @@ func (s *SomeStorage) SetURL(ctx context.Context, link string) (string, error) {
 	}
 	resID, _ = res.LastInsertId()
 
-	return fmt.Sprint(core.MAINDOMAIN, resID), nil
+	return fmt.Sprint(s.config.BaseURL, "/", resID), nil
+}
+
+func (s *Sqlitestore) Close() error {
+	return s.db.Close()
 }

@@ -5,6 +5,7 @@ import "context"
 type ShortenerStorage interface {
 	GetURL(ctx context.Context, id string) (string, error)
 	SetURL(ctx context.Context, link string) (string, error)
+	Close() error
 }
 
 type Service struct {

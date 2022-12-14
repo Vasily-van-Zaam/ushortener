@@ -15,3 +15,10 @@ type RequestAPIShorten struct {
 type ResponseAPIShorten struct {
 	Result string `json:"result"`
 }
+
+type Config struct {
+	ServerAddress string `env:"SERVER_ADDRESS"`
+	BaseURL       string `env:"BASE_URL"`
+	Filestore     string `env:"FILE_STORAGE_PATH"`
+	SqliteDB      string `env:"SQLITE_DB"`
+}

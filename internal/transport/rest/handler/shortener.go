@@ -16,6 +16,7 @@ import (
 type ShortenerService interface {
 	GetURL(ctx context.Context, link string) (string, error)
 	SetURL(ctx context.Context, link string) (string, error)
+	APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 }
 
 type ShortenerHandler struct {
@@ -101,8 +102,8 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	ctx := context.Background()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		////
-		////
+		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
+		return
 	}
 	query := core.RequestAPIShorten{}
 	responseAPI := &core.ResponseAPIShorten{}
@@ -110,10 +111,12 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 
 	} else {
-		res, err := h.service.SetURL(ctx, strings.TrimSpace(string(query.URL)))
+		res, err := h.service.APISetShorten(ctx, &query)
 		if err != nil {
+			http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+			return
 		}
-		responseAPI.Result = res
+		responseAPI = res
 	}
 
 	if err != nil {

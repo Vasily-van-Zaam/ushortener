@@ -10,8 +10,9 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/docs"
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/Vasily-van-Zaam/ushortener/internal/service"
+	filestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/file"
 	memorystore "github.com/Vasily-van-Zaam/ushortener/internal/storage/memory"
-	sqlitestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/sqllite"
+	sqlite "github.com/Vasily-van-Zaam/ushortener/internal/storage/sqlite"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
 )
@@ -28,12 +29,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if cfg.SqliteDB == "" {
-		// select store memory
-		storage, _ = sqlitestore.New(&cfg)
-	} else {
-		// selcet
-		storage, _ = memorystore.New(&cfg)
+	switch {
+	case cfg.SqliteDB != "":
+		storage, err = sqlite.New(&cfg)
+		if err != nil {
+			log.Panicln(err)
+		}
+	case cfg.Filestore != "":
+		storage, err = filestore.New(&cfg)
+		if err != nil {
+			log.Panicln(err)
+		}
+	default:
+		storage, err = memorystore.New(&cfg)
+		if err != nil {
+			log.Panicln(err)
+		}
 	}
 
 	defer storage.Close()

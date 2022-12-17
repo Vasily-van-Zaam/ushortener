@@ -52,6 +52,9 @@ func (s *ServiceMock) SetURL(ctx context.Context, link string) (string, error) {
 		}
 	}
 }
+func (s *ServiceMock) APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
+	return &core.ResponseAPIShorten{}, nil
+}
 
 func TestShortenerHandler_GetSetURL(t *testing.T) {
 
@@ -218,9 +221,7 @@ func TestShortenerHandler_ApiSetShorten(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-	}{
-	
-	}
+	}{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &ShortenerHandler{

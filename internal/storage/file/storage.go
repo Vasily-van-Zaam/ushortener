@@ -68,18 +68,18 @@ func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
 		return "", err
 	}
 	line := 0
-	lastElementId := 0
+	lastElementID := 0
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
 		log.Println(d, line)
 		if len(d) >= 1 && d[1] == link {
 			return fmt.Sprint(s.Config.BaseURL, "/", d[0]), nil
 		}
-		lastElementId, _ = strconv.Atoi(d[0])
+		lastElementID, _ = strconv.Atoi(d[0])
 		line++
 	}
 
-	if _, err := data.writer.Write([]byte(fmt.Sprint(lastElementId+1, ",", link))); err != nil {
+	if _, err := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link))); err != nil {
 		return "", err
 	}
 	if err := data.writer.WriteByte('\n'); err != nil {
@@ -90,7 +90,7 @@ func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
 		return "", err
 	}
 	defer data.file.Close()
-	return fmt.Sprint(s.Config.BaseURL, "/", lastElementId+1), nil
+	return fmt.Sprint(s.Config.BaseURL, "/", lastElementID+1), nil
 }
 
 func (s *Filestore) Close() error {

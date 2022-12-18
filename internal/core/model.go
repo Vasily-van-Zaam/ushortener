@@ -1,5 +1,7 @@
 package core
 
+import "flag"
+
 const MAINDOMAIN = "http://localhost:8080/"
 
 type Link struct {
@@ -26,9 +28,26 @@ type Config struct {
 func (c *Config) SetDefault() {
 
 	if c.BaseURL == "" {
-		c.BaseURL = "http://localhost:8080"
+		flag.StringVar(&c.BaseURL, "b", "http:/localhost:8080", "use as http://example.com")
+	} else {
+		v := ""
+		flag.StringVar(&v, "b", "http:/localhost:8080", "use as http://example.com")
 	}
+
 	if c.ServerAddress == "" {
-		c.ServerAddress = "127.0.0.1:8080"
+		flag.StringVar(&c.ServerAddress, "a", "localhost:8080", "use as 127.0.0.1:8080 or localhost:8080")
+	} else {
+		v := ""
+		flag.StringVar(&v, "a", "localhost:8080", "use as 127.0.0.1:8080 or localhost:8080")
 	}
+
+	if c.Filestore == "" {
+		flag.StringVar(&c.Filestore, "f", "./store", "path to file ./store.csv")
+	} else {
+		v := ""
+		flag.StringVar(&v, "f", "./store", "path to file ./store.csv or other")
+	}
+
+	flag.Parse()
+
 }

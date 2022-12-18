@@ -24,7 +24,7 @@ func NewServer(h *handler.Handlers) (Router, error) {
 	}, nil
 }
 
-func (s *Server) Run(port string) error {
-	log.Print("START ", port)
-	return http.ListenAndServe(port, s.router)
+func (s *Server) Run(addresPort string) error {
+	log.Print("START SERVER ", addresPort)
+	return http.ListenAndServe(addresPort, s.router)
 }

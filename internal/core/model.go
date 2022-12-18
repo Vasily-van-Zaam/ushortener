@@ -24,11 +24,11 @@ type Config struct {
 }
 
 func (c *Config) SetDefault() {
-	switch {
-	case c.BaseURL == "":
-		c.BaseURL = "http://localhost:8080"
-	case c.ServerAddress == "":
-		c.ServerAddress = "localhost:8080"
-	}
 
+	if c.BaseURL == "" {
+		c.BaseURL = "http://localhost:8080"
+	}
+	if c.ServerAddress == "" {
+		c.ServerAddress = "http://localhost:8080"
+	}
 }

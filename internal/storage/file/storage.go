@@ -52,8 +52,10 @@ func (s *Filestore) GetURL(ctx context.Context, id string) (string, error) {
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
 		log.Println(d, line)
-		if len(d) >= 1 && d[0] == id {
-			return d[1], nil
+		if len(d) >= 1 {
+			if d[0] == id {
+				return d[1], nil
+			}
 		}
 		line++
 	}
@@ -62,7 +64,7 @@ func (s *Filestore) GetURL(ctx context.Context, id string) (string, error) {
 	if id == "" {
 		return "", errors.New("not Found")
 	}
-	return s.Config.BaseURL, nil
+	return s.Config.ServerAddress, nil
 
 }
 func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
@@ -76,8 +78,10 @@ func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
 		log.Println(d, line)
-		if len(d) >= 1 && d[1] == link {
-			return fmt.Sprint(s.Config.BaseURL, "/", d[0]), nil
+		if len(d) >= 1 {
+			if d[1] == link {
+				return fmt.Sprint(s.Config.ServerAddress, "/", d[0]), nil
+			}
 		}
 		lastElementID, _ = strconv.Atoi(d[0])
 		line++
@@ -94,7 +98,7 @@ func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
 		return "", err
 	}
 	defer data.file.Close()
-	return fmt.Sprint(s.Config.BaseURL, "/", lastElementID+1), nil
+	return fmt.Sprint(s.Config.ServerAddress, "/", lastElementID+1), nil
 }
 
 func (s *Filestore) Close() error {

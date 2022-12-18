@@ -28,10 +28,10 @@ type Config struct {
 func (c *Config) SetDefault() {
 
 	if c.BaseURL == "" {
-		flag.StringVar(&c.BaseURL, "b", "http:/localhost:8080", "use as http://example.com")
+		flag.StringVar(&c.BaseURL, "b", "http://localhost:8080", "use as http://example.com")
 	} else {
 		v := ""
-		flag.StringVar(&v, "b", "http:/localhost:8080", "use as http://example.com")
+		flag.StringVar(&v, "b", "http://localhost:8080", "use as http://example.com")
 	}
 
 	if c.ServerAddress == "" {

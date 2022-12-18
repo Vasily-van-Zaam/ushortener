@@ -28,7 +28,10 @@ func (s *Memorystore) GetURL(ctx context.Context, id string) (string, error) {
 			return l.Link, nil
 		}
 	}
-	return "", errors.New("not Found")
+	if id == "" {
+		return "", errors.New("not Found")
+	}
+	return s.Config.BaseURL, nil
 }
 func (s *Memorystore) SetURL(ctx context.Context, link string) (string, error) {
 	for _, l := range s.Data {

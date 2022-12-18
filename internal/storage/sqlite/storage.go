@@ -47,7 +47,9 @@ func (s *Sqlitestore) GetURL(ctx context.Context, id string) (string, error) {
 		log.Println("errorSelectSqlLiteGet", err, linkDB)
 	}
 	if linkDB.ID == 0 {
-		return "", errors.New("not Found")
+		if id == "" {
+			return "", errors.New("not Found")
+		}
 	}
 	return fmt.Sprint(linkDB.Link), nil
 }

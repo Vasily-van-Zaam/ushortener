@@ -58,7 +58,11 @@ func (s *Filestore) GetURL(ctx context.Context, id string) (string, error) {
 		line++
 	}
 	defer data.file.Close()
-	return "", errors.New("not Found")
+
+	if id == "" {
+		return "", errors.New("not Found")
+	}
+	return s.Config.BaseURL, nil
 
 }
 func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {

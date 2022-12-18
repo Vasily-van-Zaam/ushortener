@@ -35,10 +35,10 @@ func (c *Config) SetDefault() {
 	}
 
 	if c.ServerAddress == "" {
-		flag.StringVar(&c.ServerAddress, "a", "localhost:8080", "use as 127.0.0.1:8080 or localhost:8080")
+		flag.StringVar(&c.ServerAddress, "a", "127.0.0.1:8080", "use as 127.0.0.1:8080 or localhost:8080")
 	} else {
 		v := ""
-		flag.StringVar(&v, "a", "localhost:8080", "use as 127.0.0.1:8080 or localhost:8080")
+		flag.StringVar(&v, "a", "127.0.0.1:8080", "use as 127.0.0.1:8080 or localhost:8080")
 	}
 
 	if c.Filestore == "" {

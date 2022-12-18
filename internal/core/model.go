@@ -22,3 +22,13 @@ type Config struct {
 	Filestore     string `env:"FILE_STORAGE_PATH"`
 	SqliteDB      string `env:"SQLITE_DB"`
 }
+
+func (c *Config) SetDefault() {
+	switch {
+	case c.BaseURL == "":
+		c.BaseURL = "http://localhost:8080"
+	case c.ServerAddress == "":
+		c.ServerAddress = "localhost:8080"
+	}
+
+}

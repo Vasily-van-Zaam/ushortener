@@ -29,6 +29,6 @@ func (c *Config) SetDefault() {
 		c.BaseURL = "http://localhost:8080"
 	}
 	if c.ServerAddress == "" {
-		c.ServerAddress = "http://localhost:8080"
+		c.ServerAddress = "127.0.0.1:8080"
 	}
 }

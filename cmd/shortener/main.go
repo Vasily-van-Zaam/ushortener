@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"strings"
 
 	"github.com/caarlos0/env/v6"
 
@@ -58,12 +56,8 @@ func main() {
 	if routerError != nil {
 		log.Println("routerError:", routerError)
 	}
-	serverAddress := strings.Split(cfg.ServerAddress, ":")
-	port := ":8080"
-	if len(serverAddress) >= 3 {
-		port = fmt.Sprint(":", serverAddress[2])
-	}
-	errorServer := server.Run(port)
+
+	errorServer := server.Run(cfg.ServerAddress)
 	if errorServer != nil {
 		log.Println("errorServer:", errorServer)
 	}

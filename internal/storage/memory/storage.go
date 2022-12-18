@@ -31,12 +31,12 @@ func (s *Memorystore) GetURL(ctx context.Context, id string) (string, error) {
 	if id == "" {
 		return "", errors.New("not Found")
 	}
-	return s.Config.ServerAddress, nil
+	return s.Config.BaseURL, nil
 }
 func (s *Memorystore) SetURL(ctx context.Context, link string) (string, error) {
 	for _, l := range s.Data {
 		if l.Link == link {
-			return fmt.Sprint(s.Config.ServerAddress, "/", l.ID), nil
+			return fmt.Sprint(s.Config.BaseURL, "/", l.ID), nil
 		}
 	}
 	dataLength := len(s.Data) + 1
@@ -45,7 +45,7 @@ func (s *Memorystore) SetURL(ctx context.Context, link string) (string, error) {
 		Link: link,
 	}
 	s.Data = append(s.Data, &d)
-	return fmt.Sprint(s.Config.ServerAddress, "/", d.ID), nil
+	return fmt.Sprint(s.Config.BaseURL, "/", d.ID), nil
 }
 
 func (s *Memorystore) Close() error {

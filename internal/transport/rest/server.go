@@ -25,6 +25,6 @@ func NewServer(h *handler.Handlers) (Router, error) {
 }
 
 func (s *Server) Run(port string) error {
-	log.Print("START: http://localhost", port)
+	log.Print("START ", port)
 	return http.ListenAndServe(port, s.router)
 }

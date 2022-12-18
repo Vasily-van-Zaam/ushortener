@@ -68,7 +68,7 @@ func (s *Sqlitestore) SetURL(ctx context.Context, link string) (string, error) {
 	}
 
 	if linkDB.ID != 0 {
-		return fmt.Sprint(s.config.ServerAddress, "/", linkDB.ID), nil
+		return fmt.Sprint(s.config.BaseURL, "/", linkDB.ID), nil
 	}
 	res, err := s.db.ExecContext(ctx, `
 	INSERT INTO links (link) VALUES ($link);
@@ -78,7 +78,7 @@ func (s *Sqlitestore) SetURL(ctx context.Context, link string) (string, error) {
 	}
 	resID, _ = res.LastInsertId()
 
-	return fmt.Sprint(s.config.ServerAddress, "/", resID), nil
+	return fmt.Sprint(s.config.BaseURL, "/", resID), nil
 }
 
 func (s *Sqlitestore) Close() error {

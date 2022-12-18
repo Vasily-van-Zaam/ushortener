@@ -28,6 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	cfg.SetDefault()
 
 	switch {

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	_ "github.com/Vasily-van-Zaam/ushortener/docs"
+	// _ "github.com/Vasily-van-Zaam/ushortener/docs".
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
 )

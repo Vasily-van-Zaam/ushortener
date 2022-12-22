@@ -122,7 +122,7 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	} else {
 		res, errAPI := h.service.APISetShorten(ctx, &query)
 		if errAPI != nil {
-			http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("error: %s", errAPI.Error()), http.StatusBadRequest)
 			return
 		}
 		responseAPI = res

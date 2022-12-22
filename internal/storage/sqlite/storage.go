@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3" // golint
 )
 
 type Sqlitestore struct {
@@ -37,7 +37,6 @@ func New(conf *core.Config) (*Sqlitestore, error) {
 	}, nil
 }
 func (s *Sqlitestore) GetURL(ctx context.Context, id string) (string, error) {
-
 	res := s.db.QueryRowContext(ctx, `
 	SELECT * FROM links WHERE id=$1;
 	`, id)
@@ -54,7 +53,6 @@ func (s *Sqlitestore) GetURL(ctx context.Context, id string) (string, error) {
 	return fmt.Sprint(linkDB.Link), nil
 }
 func (s *Sqlitestore) SetURL(ctx context.Context, link string) (string, error) {
-
 	var resID any
 	searchLink := s.db.QueryRowContext(ctx, `
 	SELECT * FROM links WHERE link=$1;

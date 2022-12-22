@@ -23,31 +23,26 @@ type Config struct {
 	BaseURL       string `env:"BASE_URL"`
 	Filestore     string `env:"FILE_STORAGE_PATH"`
 	SqliteDB      string `env:"SQLITE_DB"`
+	ServerTimeout int64  `env:"SERVER_TIMEOUT" envDefault:"5"`
 }
 
 func (c *Config) SetDefault() {
-
+	emptyVar := ""
 	if c.BaseURL == "" {
 		flag.StringVar(&c.BaseURL, "b", "http://localhost:8080", "use as http://example.com")
 	} else {
-		v := ""
-		flag.StringVar(&v, "b", "http://localhost:8080", "use as http://example.com")
+		flag.StringVar(&emptyVar, "b", "http://localhost:8080", "use as http://example.com")
 	}
-
 	if c.ServerAddress == "" {
 		flag.StringVar(&c.ServerAddress, "a", "127.0.0.1:8080", "use as 127.0.0.1:8080 or localhost:8080")
 	} else {
-		v := ""
-		flag.StringVar(&v, "a", "127.0.0.1:8080", "use as 127.0.0.1:8080 or localhost:8080")
+		flag.StringVar(&emptyVar, "a", "127.0.0.1:8080", "use as 127.0.0.1:8080 or localhost:8080")
 	}
-
 	if c.Filestore == "" {
 		flag.StringVar(&c.Filestore, "f", "./store", "path to file ./store.csv")
 	} else {
-		v := ""
-		flag.StringVar(&v, "f", "./store", "path to file ./store.csv or other")
+		flag.StringVar(&emptyVar, "f", "./store", "path to file ./store.csv or other")
 	}
 
 	flag.Parse()
-
 }

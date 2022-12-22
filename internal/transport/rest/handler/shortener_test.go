@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// /// mock
+// /// mock.
 type ServiceMock struct {
 }
 
@@ -52,12 +52,13 @@ func (s *ServiceMock) SetURL(ctx context.Context, link string) (string, error) {
 		}
 	}
 }
-func (s *ServiceMock) APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
+
+func (s *ServiceMock) APISetShorten(
+	ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
 	return &core.ResponseAPIShorten{}, nil
 }
 
 func TestShortenerHandler_GetSetURL(t *testing.T) {
-
 	service := ServiceMock{}
 	type fields struct {
 		service ShortenerService
@@ -204,7 +205,6 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 			assert.Equal(t, tt.want.response, string(resBody))
 
 			log.Println(tt.name, string(resBody), res.StatusCode)
-
 		})
 	}
 }

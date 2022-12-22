@@ -53,7 +53,7 @@ func main() {
 
 	service := service.NewService(storage)
 	handlers := handler.NewHandlers(handler.NewShortenerHandler(service))
-	server, routerError := rest.NewServer(handlers)
+	server, routerError := rest.NewServer(handlers, &cfg)
 	if routerError != nil {
 		log.Println("routerError:", routerError)
 	}

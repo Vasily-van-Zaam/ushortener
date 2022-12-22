@@ -38,7 +38,7 @@ func NewShortenerHandler(s ShortenerService) *ShortenerHandler {
 // @Success		 307  {string}  "redirect response"
 // @Header		 307 {string}  Location "https://some.com/link"
 // @Failure      400  {string} 	"error"
-// @Router       /{id} [get]
+// @Router       /{id} [get].
 func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
@@ -51,9 +51,12 @@ func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Location", string(res))
+	w.Header().Set("Location", res)
 	w.WriteHeader(http.StatusTemporaryRedirect)
-	w.Write([]byte(res))
+	_, errW := w.Write([]byte(res))
+	if errW != nil {
+		log.Println(errW)
+	}
 }
 
 // @Tags         Main
@@ -64,7 +67,7 @@ func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 // @Param        link   body     string  true  "your site link"
 // @Success		 201  {string}  "http://localhost:8080/1"
 // @Failure      400  {string} 	"error"
-// @Router       / [post]
+// @Router       / [post].
 func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	body, err := io.ReadAll(r.Body)
@@ -75,7 +78,10 @@ func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 
 	if len(body) == 0 {
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(core.MAINDOMAIN))
+		_, errW := w.Write([]byte(core.MAINDOMAIN))
+		if errW != nil {
+			log.Println(errW)
+		}
 		return
 	}
 
@@ -86,7 +92,10 @@ func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(res))
+	_, errW := w.Write([]byte(res))
+	if errW != nil {
+		log.Println(errW)
+	}
 }
 
 // @Tags         API
@@ -97,7 +106,7 @@ func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 // @Param        body body core.RequestApiShorten true "Body"
 // @Success		 200  {object} core.ResponseApiShorten
 // @Failure      400  {string} 	"error"
-// @Router       /api/shorten [post]
+// @Router       /api/shorten [post].
 func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	body, err := io.ReadAll(r.Body)
@@ -111,8 +120,8 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 
 	} else {
-		res, err := h.service.APISetShorten(ctx, &query)
-		if err != nil {
+		res, errAPI := h.service.APISetShorten(ctx, &query)
+		if errAPI != nil {
 			http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
 			return
 		}
@@ -127,7 +136,10 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	response, _ := json.Marshal(responseAPI)
 
 	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(201)
-	w.Write(response)
+	w.WriteHeader(http.StatusCreated)
+	_, errW := w.Write(response)
+	if errW != nil {
+		log.Println(errW)
+	}
 	log.Println("==", query.URL)
 }

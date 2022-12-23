@@ -23,7 +23,7 @@ type Config struct {
 	BaseURL       string `env:"BASE_URL"`
 	Filestore     string `env:"FILE_STORAGE_PATH"`
 	SqliteDB      string `env:"SQLITE_DB"`
-	ServerTimeout int64  `env:"SERVER_TIMEOUT" envDefault:"5"`
+	ServerTimeout int64  `env:"SERVER_TIMEOUT" envDefault:"100"`
 }
 
 func (c *Config) SetDefault() {

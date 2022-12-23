@@ -13,7 +13,7 @@ import (
 
 type Sqlitestore struct {
 	db     *sql.DB
-	config *core.Config
+	Config *core.Config
 }
 
 func New(conf *core.Config) (*Sqlitestore, error) {
@@ -33,7 +33,7 @@ func New(conf *core.Config) (*Sqlitestore, error) {
 
 	return &Sqlitestore{
 		db:     db,
-		config: conf,
+		Config: conf,
 	}, nil
 }
 func (s *Sqlitestore) GetURL(ctx context.Context, id string) (string, error) {
@@ -45,12 +45,15 @@ func (s *Sqlitestore) GetURL(ctx context.Context, id string) (string, error) {
 	if err != nil {
 		log.Println("errorSelectSqlLiteGet", err, linkDB)
 	}
-	if linkDB.ID == 0 {
-		if id == "" {
-			return "", errors.New("not Found")
-		}
+	if linkDB.ID != 0 {
+		return fmt.Sprint(linkDB.Link), nil
+
+		// return "", errors.New("not Found")
 	}
-	return fmt.Sprint(linkDB.Link), nil
+	if id == "" {
+		return "", errors.New("not Found")
+	}
+	return s.Config.BaseURL, nil
 }
 func (s *Sqlitestore) SetURL(ctx context.Context, link string) (string, error) {
 	var resID any
@@ -66,7 +69,7 @@ func (s *Sqlitestore) SetURL(ctx context.Context, link string) (string, error) {
 	}
 
 	if linkDB.ID != 0 {
-		return fmt.Sprint(s.config.BaseURL, "/", linkDB.ID), nil
+		return fmt.Sprint(s.Config.BaseURL, "/", linkDB.ID), nil
 	}
 	res, err := s.db.ExecContext(ctx, `
 	INSERT INTO links (link) VALUES ($link);
@@ -76,7 +79,7 @@ func (s *Sqlitestore) SetURL(ctx context.Context, link string) (string, error) {
 	}
 	resID, _ = res.LastInsertId()
 
-	return fmt.Sprint(s.config.BaseURL, "/", resID), nil
+	return fmt.Sprint(s.Config.BaseURL, "/", resID), nil
 }
 
 func (s *Sqlitestore) Close() error {

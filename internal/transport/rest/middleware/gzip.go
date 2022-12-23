@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -44,10 +43,10 @@ func GzipHandle(next http.Handler, conf *core.Config) http.Handler {
 			}
 			bodyBytes, _ = io.ReadAll(rg)
 		} else {
-			bodyBytes, _ = ioutil.ReadAll(r.Body)
+			bodyBytes, _ = io.ReadAll(r.Body)
 		}
 		r.Body.Close()
-		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			next.ServeHTTP(w, r)

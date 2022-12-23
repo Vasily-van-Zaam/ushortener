@@ -21,11 +21,13 @@ type ShortenerService interface {
 
 type ShortenerHandler struct {
 	service ShortenerService
+	config  *core.Config
 }
 
-func NewShortenerHandler(s ShortenerService) *ShortenerHandler {
+func NewShortenerHandler(s ShortenerService, conf *core.Config) *ShortenerHandler {
 	return &ShortenerHandler{
 		service: s,
+		config:  conf,
 	}
 }
 
@@ -48,6 +50,7 @@ func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -57,6 +60,7 @@ func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	if errW != nil {
 		log.Println(errW)
 	}
+	h.config.LogResponse(w, r, res, http.StatusTemporaryRedirect)
 }
 
 // @Tags         Main
@@ -73,21 +77,24 @@ func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
+		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if len(body) == 0 {
 		w.WriteHeader(http.StatusCreated)
-		_, errW := w.Write([]byte(core.MAINDOMAIN))
+		_, errW := w.Write([]byte(h.config.BaseURL))
 		if errW != nil {
 			log.Println(errW)
 		}
+		h.config.LogResponse(w, r, h.config.BaseURL, http.StatusCreated)
 		return
 	}
 
 	res, err := h.service.SetURL(ctx, strings.TrimSpace(string(body)))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain")
@@ -96,6 +103,7 @@ func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	if errW != nil {
 		log.Println(errW)
 	}
+	h.config.LogResponse(w, r, res, http.StatusCreated)
 }
 
 // @Tags         API
@@ -112,6 +120,7 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
+		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 	query := core.RequestAPIShorten{}
@@ -123,6 +132,7 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 		res, errAPI := h.service.APISetShorten(ctx, &query)
 		if errAPI != nil {
 			http.Error(w, fmt.Sprintf("error: %s", errAPI.Error()), http.StatusBadRequest)
+			h.config.LogResponse(w, r, errAPI.Error(), http.StatusBadRequest)
 			return
 		}
 		responseAPI = res
@@ -130,6 +140,7 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
+		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -138,8 +149,9 @@ func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request)
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	_, errW := w.Write(response)
+
 	if errW != nil {
 		log.Println(errW)
 	}
-	log.Println("==", query.URL)
+	h.config.LogResponse(w, r, string(response), http.StatusCreated)
 }

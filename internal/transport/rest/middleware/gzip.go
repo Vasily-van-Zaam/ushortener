@@ -1,11 +1,14 @@
 package middleware
 
 import (
+	"bytes"
 	"compress/gzip"
 	"io"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
 type gzipResponseWriter struct {
@@ -18,12 +21,15 @@ func (w gzipResponseWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
-func GzipHandle(next http.Handler) http.Handler {
+func GzipHandle(next http.Handler, conf *core.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("MIDDLEWARE", next)
+		bodyBytes, _ := io.ReadAll(r.Body)
+		r.Body.Close()
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			next.ServeHTTP(w, r)
+			conf.LogRequest(w, r, string(bodyBytes))
 			return
 		}
 
@@ -32,7 +38,7 @@ func GzipHandle(next http.Handler) http.Handler {
 		gz, _ := gzip.NewWriterLevel(w, gzip.BestSpeed)
 		defer gz.Close()
 		gzr := gzipResponseWriter{Writer: gz, ResponseWriter: w}
-
+		conf.LogRequest(w, r, string(bodyBytes))
 		next.ServeHTTP(gzr, r)
 	})
 }

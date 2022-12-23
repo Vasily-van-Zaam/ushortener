@@ -34,7 +34,7 @@ func (s *Server) Run(addresPort string) error {
 	server := &http.Server{
 		Addr:              addresPort,
 		ReadHeaderTimeout: time.Duration(s.config.ServerTimeout) * time.Second,
-		Handler:           middleware.GzipHandle(s.router),
+		Handler:           middleware.GzipHandle(s.router, s.config),
 	}
 	return server.ListenAndServe()
 }

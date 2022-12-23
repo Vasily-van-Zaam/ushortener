@@ -1,6 +1,11 @@
 package core
 
-import "flag"
+import (
+	"encoding/json"
+	"flag"
+	"log"
+	"net/http"
+)
 
 const MAINDOMAIN = "http://localhost:8080/"
 
@@ -45,4 +50,35 @@ func (c *Config) SetDefault() {
 	}
 
 	flag.Parse()
+}
+
+func (c *Config) LogResponse(w http.ResponseWriter, r *http.Request, body any, status int) {
+	configByte, _ := json.Marshal(&c)
+	log.Print(
+		"\n# START LOG RESPONSE #", "\n",
+		"Accept-Encoding: ", r.Header.Get("Accept-Encoding"), "\n",
+		"Content-Encoding: ", r.Header.Get("Content-Encoding"), "\n",
+		"Content-Type: ", "application/json", "\n",
+		"STATUS: ", status, "\n",
+		"METHOD: ", r.Method, "\n",
+		"PROTO: ", r.Proto, "\n",
+		"URL: ", r.Host, r.URL.Path, "\n",
+		"BODY: ", body, "\n",
+		"CONFIG: ", string(configByte), "\n",
+		"# END LOG RESPONSE #", "\n",
+	)
+}
+func (c *Config) LogRequest(w http.ResponseWriter, r *http.Request, body any) {
+	configByte, _ := json.Marshal(&c)
+	log.Print(
+		"\n# START LOG REQUEST #", "\n",
+		"Accept-Encoding: ", r.Header.Get("Accept-Encoding"), "\n",
+		"Content-Encoding: ", r.Header.Get("Content-Encoding"), "\n",
+		"METHOD: ", r.Method, "\n",
+		"PROTO: ", r.Proto, "\n",
+		"URL: ", r.Host, r.URL.Path, "\n",
+		"BODY: ", body, "\n",
+		"CONFIG: ", string(configByte), "\n",
+		"# END LOG REQUEST #", "\n",
+	)
 }

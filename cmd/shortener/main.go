@@ -52,7 +52,7 @@ func main() {
 	defer storage.Close()
 
 	service := service.NewService(storage)
-	handlers := handler.NewHandlers(handler.NewShortenerHandler(service))
+	handlers := handler.NewHandlers(handler.NewShortenerHandler(service, &cfg))
 	server, routerError := rest.NewServer(handlers, &cfg)
 	if routerError != nil {
 		log.Println("routerError:", routerError)

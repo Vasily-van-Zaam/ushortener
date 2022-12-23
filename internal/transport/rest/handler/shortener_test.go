@@ -184,9 +184,15 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		cfg := core.Config{
+			ServerAddress: "127.0.0.1:8080/",
+			BaseURL:       "http://localhost:8080/",
+		}
+
 		t.Run(tt.name, func(t *testing.T) {
 			h := &ShortenerHandler{
 				service: tt.fields.service,
+				config:  &cfg,
 			}
 			r := chi.NewRouter()
 			hs := NewHandlers(h)

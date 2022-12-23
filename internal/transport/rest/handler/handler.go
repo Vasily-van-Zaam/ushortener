@@ -1,7 +1,7 @@
 package handler
 
 import (
-	_ "github.com/Vasily-van-Zaam/ushortener/docs"
+	// _ "github.com/Vasily-van-Zaam/ushortener/docs".
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -18,12 +18,10 @@ func NewHandlers(shortener *ShortenerHandler) *Handlers {
 }
 
 func (h *Handlers) InitAPI(r *chi.Mux) {
-
 	r.Get("/swagger-docs/*", httpSwagger.Handler())
 
 	r.Get("/", h.shortener.GetURL)
 	r.Get("/{id}", h.shortener.GetURL)
 	r.Post("/", h.shortener.SetURL)
-	r.Post("/api/shorten", h.shortener.ApiSetShorten)
-
+	r.Post("/api/shorten", h.shortener.APISetShorten)
 }

@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// /// mock
+// /// mock.
 type ServiceMock struct {
 }
 
@@ -53,8 +53,12 @@ func (s *ServiceMock) SetURL(ctx context.Context, link string) (string, error) {
 	}
 }
 
-func TestShortenerHandler_GetSetURL(t *testing.T) {
+func (s *ServiceMock) APISetShorten(
+	ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
+	return &core.ResponseAPIShorten{}, nil
+}
 
+func TestShortenerHandler_GetSetURL(t *testing.T) {
 	service := ServiceMock{}
 	type fields struct {
 		service ShortenerService
@@ -180,9 +184,15 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		cfg := core.Config{
+			ServerAddress: "127.0.0.1:8080/",
+			BaseURL:       "http://localhost:8080/",
+		}
+
 		t.Run(tt.name, func(t *testing.T) {
 			h := &ShortenerHandler{
 				service: tt.fields.service,
+				config:  &cfg,
 			}
 			r := chi.NewRouter()
 			hs := NewHandlers(h)
@@ -201,7 +211,6 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 			assert.Equal(t, tt.want.response, string(resBody))
 
 			log.Println(tt.name, string(resBody), res.StatusCode)
-
 		})
 	}
 }
@@ -218,15 +227,13 @@ func TestShortenerHandler_ApiSetShorten(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-	}{
-		// TODO: Add test cases.
-	}
+	}{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &ShortenerHandler{
 				service: tt.fields.service,
 			}
-			h.ApiSetShorten(tt.args.w, tt.args.r)
+			h.APISetShorten(tt.args.w, tt.args.r)
 		})
 	}
 }

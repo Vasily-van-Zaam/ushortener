@@ -14,11 +14,12 @@
 # Binaries
 cmd/shortener/main
 cmd/shortener/shortener
-
+cmd/shortener/store
 # Dependency directories (remove the comment below to include it)
 vendor/
 
 # IDEs directories
+
 .idea
 .vscode
 store_shortener.db

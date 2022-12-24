@@ -11,22 +11,27 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
-type gzipResponseWriter struct {
+type Gzip struct {
+	Config *core.Config
+}
+
+func NewGzip(conf *core.Config) *Gzip {
+	return &Gzip{
+		Config: conf,
+	}
+}
+
+type GzipResponseWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
 }
 
-func (w gzipResponseWriter) Write(b []byte) (int, error) {
+func (w GzipResponseWriter) Write(b []byte) (int, error) {
 	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него
 	return w.Writer.Write(b)
 }
 
-// func (w gzipResponseWriter) Read(b []byte) (int, error) {
-// 	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него
-// 	return w.Read(b)
-// }
-
-func GzipHandle(next http.Handler, conf *core.Config) http.Handler {
+func (g *Gzip) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var bodyBytes []byte
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
@@ -50,7 +55,7 @@ func GzipHandle(next http.Handler, conf *core.Config) http.Handler {
 
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			next.ServeHTTP(w, r)
-			conf.LogRequest(w, r, string(bodyBytes))
+			g.Config.LogRequest(w, r, string(bodyBytes))
 			return
 		}
 
@@ -58,9 +63,9 @@ func GzipHandle(next http.Handler, conf *core.Config) http.Handler {
 
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
-		gzr := gzipResponseWriter{Writer: gz, ResponseWriter: w}
+		gzr := GzipResponseWriter{Writer: gz, ResponseWriter: w}
 
-		conf.LogRequest(w, r, string(bodyBytes))
+		g.Config.LogRequest(w, r, string(bodyBytes))
 		next.ServeHTTP(gzr, r)
 	})
 }

@@ -15,6 +15,7 @@ import (
 	sqlite "github.com/Vasily-van-Zaam/ushortener/internal/storage/sqlite"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
+	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/middleware"
 )
 
 func main() {
@@ -28,9 +29,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	cfg.SetDefault()
 
+	middlewares := []rest.Middleware{
+		middleware.NewGzip(&cfg),
+	}
 	switch {
 	case cfg.SqliteDB != "":
 		storage, err = sqlite.New(&cfg)
@@ -53,7 +56,7 @@ func main() {
 
 	service := service.NewService(storage)
 	handlers := handler.NewHandlers(handler.NewShortenerHandler(service, &cfg))
-	server, routerError := rest.NewServer(handlers, &cfg)
+	server, routerError := rest.NewServer(handlers, &cfg, middlewares)
 	if routerError != nil {
 		log.Println("routerError:", routerError)
 	}
@@ -62,5 +65,4 @@ func main() {
 	if errorServer != nil {
 		log.Println("errorServer:", errorServer)
 	}
-
 }

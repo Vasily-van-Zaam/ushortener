@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -13,20 +12,20 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type ShortenerService interface {
+type BasicService interface {
 	GetURL(ctx context.Context, link string) (string, error)
 	SetURL(ctx context.Context, link string) (string, error)
-	APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
+	// APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 }
 
-type ShortenerHandler struct {
-	service ShortenerService
+type BasicHandler struct {
+	service *BasicService
 	config  *core.Config
 }
 
-func NewShortenerHandler(s ShortenerService, conf *core.Config) *ShortenerHandler {
-	return &ShortenerHandler{
-		service: s,
+func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
+	return &BasicHandler{
+		service: &s,
 		config:  conf,
 	}
 }
@@ -41,12 +40,13 @@ func NewShortenerHandler(s ShortenerService, conf *core.Config) *ShortenerHandle
 // @Header		 307 {string}  Location "https://some.com/link"
 // @Failure      400  {string} 	"error"
 // @Router       /{id} [get].
-func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
+func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
+	service := *h.service
 	ctx := context.Background()
 
 	link := chi.URLParam(r, "id")
 
-	res, err := h.service.GetURL(ctx, strings.TrimSpace(link))
+	res, err := service.GetURL(ctx, strings.TrimSpace(link))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -72,7 +72,8 @@ func (h *ShortenerHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 // @Success		 201  {string}  "http://localhost:8080/1"
 // @Failure      400  {string} 	"error"
 // @Router       / [post].
-func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
+func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
+	service := *h.service
 	ctx := context.Background()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -91,7 +92,7 @@ func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.service.SetURL(ctx, strings.TrimSpace(string(body)))
+	res, err := service.SetURL(ctx, strings.TrimSpace(string(body)))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
 		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
@@ -104,54 +105,4 @@ func (h *ShortenerHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 		log.Println(errW)
 	}
 	h.config.LogResponse(w, r, res, http.StatusCreated)
-}
-
-// @Tags         API
-// @Summary      Api Set link shortener
-// @Description  set shortener link 1
-// @Accept       plain
-// @Produce      plain
-// @Param        body body core.RequestApiShorten true "Body"
-// @Success		 200  {object} core.ResponseApiShorten
-// @Failure      400  {string} 	"error"
-// @Router       /api/shorten [post].
-func (h *ShortenerHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
-		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
-		return
-	}
-	query := core.RequestAPIShorten{}
-	responseAPI := &core.ResponseAPIShorten{}
-	err = json.Unmarshal(body, &query)
-	if err != nil {
-
-	} else {
-		res, errAPI := h.service.APISetShorten(ctx, &query)
-		if errAPI != nil {
-			http.Error(w, fmt.Sprintf("error: %s", errAPI.Error()), http.StatusBadRequest)
-			h.config.LogResponse(w, r, errAPI.Error(), http.StatusBadRequest)
-			return
-		}
-		responseAPI = res
-	}
-
-	if err != nil {
-		http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
-		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	response, _ := json.Marshal(responseAPI)
-
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_, errW := w.Write(response)
-
-	if errW != nil {
-		log.Println(errW)
-	}
-	h.config.LogResponse(w, r, string(response), http.StatusCreated)
 }

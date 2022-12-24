@@ -70,7 +70,7 @@ func (s *ServiceMock) APISetShorten(
 func TestShortenerHandler_GetSetURL(t *testing.T) {
 	service := ServiceMock{}
 	type fields struct {
-		service ShortenerService
+		service BasicService
 	}
 	type want struct {
 		code        int
@@ -199,12 +199,12 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
-			h := &ShortenerHandler{
-				service: tt.fields.service,
+			h := &BasicHandler{
+				service: &tt.fields.service,
 				config:  &cfg,
 			}
 			r := chi.NewRouter()
-			hs := NewHandlers(h)
+			hs := NewHandlers(h, nil)
 			hs.InitAPI(r)
 			r.ServeHTTP(tt.args.w, tt.args.r)
 
@@ -220,29 +220,6 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 			assert.Equal(t, tt.want.response, string(resBody))
 
 			log.Println(tt.name, string(resBody), res.StatusCode)
-		})
-	}
-}
-
-func TestShortenerHandler_ApiSetShorten(t *testing.T) {
-	type fields struct {
-		service ShortenerService
-	}
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := &ShortenerHandler{
-				service: tt.fields.service,
-			}
-			h.APISetShorten(tt.args.w, tt.args.r)
 		})
 	}
 }
@@ -354,12 +331,11 @@ func TestCripto(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	
 
 	decrypted, err := aesgcm.Open(nil, nonce, encrypted, nil)
-    if err != nil {
-        panic(err)
-    }
+	if err != nil {
+		panic(err)
+	}
 	log.Print(string(decrypted))
 	// src := []byte("Этюд в розовых тонах") // данные, которые хотим зашифровать
 	// fmt.Printf("original: %s\n", src)

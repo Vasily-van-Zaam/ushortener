@@ -33,6 +33,7 @@ func main() {
 
 	middlewares := []rest.Middleware{
 		middleware.NewGzip(&cfg),
+		middleware.NewAuth(&cfg),
 	}
 	switch {
 	case cfg.SqliteDB != "":
@@ -54,8 +55,13 @@ func main() {
 
 	defer storage.Close()
 
-	service := service.NewService(storage)
-	handlers := handler.NewHandlers(handler.NewShortenerHandler(service, &cfg))
+	basicService := service.NewBasic(&storage)
+	apiService := service.NewApi(&storage)
+	// basicService.
+	handlers := handler.NewHandlers(
+		handler.NewBasic(basicService, &cfg),
+		handler.NewAPI(apiService, &cfg),
+	)
 	server, routerError := rest.NewServer(handlers, &cfg, middlewares)
 	if routerError != nil {
 		log.Println("routerError:", routerError)

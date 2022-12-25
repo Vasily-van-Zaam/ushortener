@@ -8,21 +8,21 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
-type Api struct {
+type API struct {
 	storage *Storage
 	config  *core.Config
 	core.AUTHService
 }
 
-func NewApi(conf *core.Config, s *Storage, auth *AUTHService) *Api {
-	return &Api{
+func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
+	return &API{
 		s,
 		conf,
 		auth,
 	}
 }
 
-func (s *Api) APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
+func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
 	user := core.User{}
 	user.FromAny(ctx.Value(core.USERDATA))
 	l := core.Link{
@@ -38,7 +38,7 @@ func (s *Api) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 	}, nil
 }
 
-func (s *Api) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error) {
+func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error) {
 	user := core.User{}
 	user.FromAny(ctx.Value(core.USERDATA))
 	res, err := (*s.storage).GetUserURLS(ctx, user.ID)

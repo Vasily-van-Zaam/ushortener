@@ -5,14 +5,30 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"reflect"
 )
 
-const MAINDOMAIN = "http://localhost:8080/"
+type UserData string
+
+const (
+	USERDATA UserData = "user_data"
+)
 
 type Link struct {
 	ID        int    `db:"id" json:"id"`
 	Link      string `db:"link" json:"link"`
 	ShortLink string `db:"short_link" json:"short_link"`
+	UserID    string `db:"user_id" json:"user_id"`
+}
+
+type User struct {
+	ID string `db:"id" json:"id"`
+}
+
+func (u *User) FromAny(v any) {
+	if reflect.TypeOf(v) == reflect.TypeOf(User{}) {
+		u.ID = v.(User).ID
+	}
 }
 
 type RequestAPIShorten struct {
@@ -23,12 +39,19 @@ type ResponseAPIShorten struct {
 	Result string `json:"result"`
 }
 
+type ResponseAPIUserURL struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+}
+
 type Config struct {
-	ServerAddress string `env:"SERVER_ADDRESS"`
-	BaseURL       string `env:"BASE_URL"`
-	Filestore     string `env:"FILE_STORAGE_PATH"`
-	SqliteDB      string `env:"SQLITE_DB"`
-	ServerTimeout int64  `env:"SERVER_TIMEOUT" envDefault:"100"`
+	ServerAddress    string `env:"SERVER_ADDRESS"`
+	BaseURL          string `env:"BASE_URL"`
+	Filestore        string `env:"FILE_STORAGE_PATH"`
+	SqliteDB         string `env:"SQLITE_DB"`
+	ServerTimeout    int64  `env:"SERVER_TIMEOUT" envDefault:"100"`
+	ExpiresDayCookie int64  `env:"EXPIRES_DAY_COOKIE" envDefault:"365"`
+	SecretKey        string `env:"SECRET_KEY" envDefault:"secretkey"`
 }
 
 func (c *Config) SetDefault() {

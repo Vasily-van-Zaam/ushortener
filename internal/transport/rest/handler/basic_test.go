@@ -27,6 +27,7 @@ import (
 
 // /// mock.
 type ServiceMock struct {
+	core.AUTHService
 }
 
 func (s *ServiceMock) GetURL(ctx context.Context, id string) (string, error) {
@@ -49,11 +50,11 @@ func (s *ServiceMock) SetURL(ctx context.Context, link string) (string, error) {
 	switch link {
 	case "http://example.com/link1":
 		{
-			return core.MAINDOMAIN + "1", nil
+			return "http://localhost:8080/" + "1", nil
 		}
 	case "http://example.com/link2":
 		{
-			return core.MAINDOMAIN + "2", nil
+			return "http://localhost:8080/" + "2", nil
 		}
 	default:
 		{

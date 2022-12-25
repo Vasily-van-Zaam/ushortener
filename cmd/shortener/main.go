@@ -24,17 +24,13 @@ func main() {
 	docs.SwaggerInfo.Version = "1.1"
 
 	var cfg core.Config
-	var storage service.ShortenerStorage
+	var storage service.Storage
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 	cfg.SetDefault()
 
-	middlewares := []rest.Middleware{
-		middleware.NewGzip(&cfg),
-		middleware.NewAuth(&cfg),
-	}
 	switch {
 	case cfg.SqliteDB != "":
 		storage, err = sqlite.New(&cfg)
@@ -54,10 +50,13 @@ func main() {
 	}
 
 	defer storage.Close()
-
-	basicService := service.NewBasic(&storage)
-	apiService := service.NewApi(&storage)
-	// basicService.
+	authService := service.NewAuth(&cfg, &storage)
+	basicService := service.NewBasic(&cfg, &storage, authService)
+	apiService := service.NewApi(&cfg, &storage, authService)
+	middlewares := []rest.Middleware{
+		middleware.NewGzip(&cfg),
+		middleware.NewAuth(&cfg, authService),
+	}
 	handlers := handler.NewHandlers(
 		handler.NewBasic(basicService, &cfg),
 		handler.NewAPI(apiService, &cfg),

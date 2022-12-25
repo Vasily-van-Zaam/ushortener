@@ -15,6 +15,7 @@ import (
 type BasicService interface {
 	GetURL(ctx context.Context, link string) (string, error)
 	SetURL(ctx context.Context, link string) (string, error)
+	core.AUTHService
 	// APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 }
 
@@ -42,7 +43,7 @@ func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
 // @Router       /{id} [get].
 func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	service := *h.service
-	ctx := context.Background()
+	ctx := r.Context()
 
 	link := chi.URLParam(r, "id")
 
@@ -74,7 +75,7 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 // @Router       / [post].
 func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	service := *h.service
-	ctx := context.Background()
+	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)

@@ -13,6 +13,8 @@ import (
 
 type APIService interface {
 	APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
+	APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error)
+	core.AUTHService
 }
 
 type APIHandler struct {
@@ -39,7 +41,7 @@ func NewAPI(s APIService, conf *core.Config) *APIHandler {
 func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 	service := *h.service
 
-	ctx := context.Background()
+	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
@@ -77,4 +79,27 @@ func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 		log.Println(errW)
 	}
 	h.config.LogResponse(w, r, string(response), http.StatusCreated)
+}
+
+/// TODO ADD SWAGER
+func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
+	service := *h.service
+
+	res, errAPI := service.APIGetUserURLS(r.Context())
+	if errAPI != nil {
+		log.Println("ERROR: ", errAPI)
+	}
+	if len(res) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	resJs, _ := json.Marshal(res)
+	_, err := w.Write(resJs)
+	if err != nil {
+		///
+	}
 }

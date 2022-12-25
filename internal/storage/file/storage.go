@@ -24,11 +24,9 @@ type Filestore struct {
 }
 
 func New(conf *core.Config) (*Filestore, error) {
-
 	return &Filestore{
 		Config: conf,
 	}, nil
-
 }
 
 func (s *Filestore) newOpenFile() (*Event, error) {
@@ -64,11 +62,9 @@ func (s *Filestore) GetURL(ctx context.Context, id string) (string, error) {
 	if id == "" {
 		return "", errors.New("not Found")
 	}
-	return s.Config.BaseURL, nil
-
+	return "", nil
 }
-func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
-
+func (s *Filestore) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	data, err := s.newOpenFile()
 	if err != nil {
 		return "", err
@@ -79,26 +75,55 @@ func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
 		d := strings.Split(data.scanner.Text(), ",")
 		log.Println(d, line)
 		if len(d) >= 1 {
-			if d[1] == link {
-				return fmt.Sprint(s.Config.BaseURL, "/", d[0]), nil
+			if d[1] == link.Link {
+				return fmt.Sprint(d[0]), nil
 			}
 		}
 		lastElementID, _ = strconv.Atoi(d[0])
 		line++
 	}
 
-	if _, err := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link))); err != nil {
-		return "", err
+	if _, errWrite := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UserID))); err != nil {
+		return "", errWrite
 	}
-	if err := data.writer.WriteByte('\n'); err != nil {
-		return "", err
+	if errW := data.writer.WriteByte('\n'); errW != nil {
+		return "", errW
 	}
 	err = data.writer.Flush()
 	if err != nil {
 		return "", err
 	}
 	defer data.file.Close()
-	return fmt.Sprint(s.Config.BaseURL, "/", lastElementID+1), nil
+	return fmt.Sprint(lastElementID + 1), nil
+}
+
+func (s *Filestore) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
+	data, err := s.newOpenFile()
+	if err != nil {
+		return nil, err
+	}
+	links := []*core.Link{}
+	line := 0
+	for data.scanner.Scan() {
+		d := strings.Split(data.scanner.Text(), ",")
+		if len(d) != 0 {
+			if d[2] == userID {
+				id, _ := strconv.Atoi(d[0])
+				links = append(links, &core.Link{
+					ID:     id,
+					Link:   d[1],
+					UserID: d[2],
+				})
+			}
+		}
+		line++
+	}
+	defer data.file.Close()
+
+	if userID == "" {
+		return nil, errors.New("not Found")
+	}
+	return links, nil
 }
 
 func (s *Filestore) Close() error {

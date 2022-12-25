@@ -24,6 +24,7 @@ func New(conf *core.Config) (*Sqlitestore, error) {
 	_, errExec := db.Exec(`
 	CREATE TABLE IF NOT EXISTS links(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user_id CHAR(255),
 		link TEXT UNIQUE,
 		short_link char(255) UNIQUE
 	);`)
@@ -41,45 +42,67 @@ func (s *Sqlitestore) GetURL(ctx context.Context, id string) (string, error) {
 	SELECT * FROM links WHERE id=$1;
 	`, id)
 	linkDB := core.Link{}
-	err := res.Scan(&linkDB.ID, &linkDB.Link, &linkDB.ShortLink)
+	err := res.Scan(&linkDB.ID, &linkDB.UserID, &linkDB.Link, &linkDB.ShortLink)
 	if err != nil {
 		log.Println("errorSelectSqlLiteGet", err, linkDB)
 	}
-	if linkDB.ID != 0 {
-		return fmt.Sprint(linkDB.Link), nil
 
-		// return "", errors.New("not Found")
+	if linkDB.ID != 0 {
+		return linkDB.Link, nil
 	}
 	if id == "" {
 		return "", errors.New("not Found")
 	}
-	return s.Config.BaseURL, nil
+	return "", nil
 }
-func (s *Sqlitestore) SetURL(ctx context.Context, link string) (string, error) {
+func (s *Sqlitestore) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	var resID any
 	searchLink := s.db.QueryRowContext(ctx, `
 	SELECT * FROM links WHERE link=$1;
-	`, link)
+	`, link.Link)
 
 	linkDB := core.Link{}
 
-	err := searchLink.Scan(&linkDB.ID, &linkDB.Link, &linkDB.ShortLink)
+	err := searchLink.Scan(&linkDB.ID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UserID)
 	if err != nil {
 		log.Println("errorSelectSqlLitePost", err, linkDB)
 	}
 
 	if linkDB.ID != 0 {
-		return fmt.Sprint(s.Config.BaseURL, "/", linkDB.ID), nil
+		return fmt.Sprint(linkDB.ID), nil
 	}
 	res, err := s.db.ExecContext(ctx, `
-	INSERT INTO links (link) VALUES ($link);
-	`, link)
+	INSERT INTO links (link, user_id) VALUES ($1, $2);
+	`, link.Link, link.UserID)
 	if err != nil {
 		log.Println("errorInsertSqlLitePost", err)
 	}
 	resID, _ = res.LastInsertId()
 
-	return fmt.Sprint(s.Config.BaseURL, "/", resID), nil
+	return fmt.Sprint(resID), nil
+}
+
+func (s *Sqlitestore) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
+	links := []*core.Link{}
+	res, _ := s.db.QueryContext(ctx, `
+	SELECT * FROM links WHERE user_id=$1;
+	`, userID)
+	// linkDB := []*core.Link{}
+	err := res.Scan(&links)
+	if err != nil {
+		log.Println("errorSelectSqlLiteGet", err, links)
+	}
+
+	log.Println()
+	// if linkDB.ID != 0 {
+	// 	return fmt.Sprint(linkDB.Link), nil
+
+	// 	// return "", errors.New("not Found")
+	// }
+	if userID == "" {
+		return nil, errors.New("not Found")
+	}
+	return links, nil
 }
 
 func (s *Sqlitestore) Close() error {

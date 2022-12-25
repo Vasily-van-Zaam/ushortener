@@ -9,10 +9,10 @@ import (
 )
 
 // /// mock.
-type ApiServiceMock struct {
+type APIServiceMock struct {
 }
 
-func (s *ApiServiceMock) APISetShorten(
+func (s *APIServiceMock) APISetShorten(
 	ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
 	return &core.ResponseAPIShorten{}, nil
 }

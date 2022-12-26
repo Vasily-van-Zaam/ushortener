@@ -85,22 +85,22 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
 	/// TODO Пока не работает допилить запрос
 	links := []*core.Link{}
-	res, err := s.db.QueryContext(ctx, `
-	SELECT * FROM links WHERE user_id=$1;
-	`, userID)
-	if err != nil {
-		log.Println("errorGetUserURLS", err)
-	}
-	errScan := res.Scan(&links)
-	if errScan != nil {
-		log.Println("errorScanGetUserURLS", err, links)
-	}
+	// res, err := s.db.QueryContext(ctx, `
+	// SELECT * FROM links WHERE user_id=$1;
+	// `, userID)
+	// if err != nil {
+	// 	log.Println("errorGetUserURLS", err)
+	// }
+	// errScan := res.Scan(&links)
+	// if errScan != nil {
+	// 	log.Println("errorScanGetUserURLS", err, links)
+	// }
 
-	log.Println()
+	// log.Println()
 
-	if userID == "" {
-		return nil, errors.New("not Found")
-	}
+	// if userID == "" {
+	// 	return nil, errors.New("not Found")
+	// }
 	return links, nil
 }
 

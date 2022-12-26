@@ -19,17 +19,17 @@ type Event struct {
 	writer  *bufio.Writer
 }
 
-type Filestore struct {
+type Store struct {
 	Config *core.Config
 }
 
-func New(conf *core.Config) (*Filestore, error) {
-	return &Filestore{
+func New(conf *core.Config) (*Store, error) {
+	return &Store{
 		Config: conf,
 	}, nil
 }
 
-func (s *Filestore) newOpenFile() (*Event, error) {
+func (s *Store) newOpenFile() (*Event, error) {
 	file, err := os.OpenFile(s.Config.Filestore, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (s *Filestore) newOpenFile() (*Event, error) {
 	}, nil
 }
 
-func (s *Filestore) GetURL(ctx context.Context, id string) (string, error) {
+func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	data, err := s.newOpenFile()
 	if err != nil {
 		return "", err
@@ -64,7 +64,7 @@ func (s *Filestore) GetURL(ctx context.Context, id string) (string, error) {
 	}
 	return "", nil
 }
-func (s *Filestore) SetURL(ctx context.Context, link *core.Link) (string, error) {
+func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	data, err := s.newOpenFile()
 	if err != nil {
 		return "", err
@@ -98,7 +98,7 @@ func (s *Filestore) SetURL(ctx context.Context, link *core.Link) (string, error)
 	return fmt.Sprint(lastElementID + 1), nil
 }
 
-func (s *Filestore) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
+func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
 	data, err := s.newOpenFile()
 	if err != nil {
 		return nil, err
@@ -127,6 +127,10 @@ func (s *Filestore) GetUserURLS(ctx context.Context, userID string) ([]*core.Lin
 	return links, nil
 }
 
-func (s *Filestore) Close() error {
+func (s *Store) Close() error {
+	return nil
+}
+
+func (s *Store) Ping(ctx context.Context) error {
 	return nil
 }

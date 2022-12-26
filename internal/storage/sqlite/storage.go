@@ -11,12 +11,12 @@ import (
 	_ "github.com/mattn/go-sqlite3" // golint
 )
 
-type Sqlitestore struct {
+type Store struct {
 	db     *sql.DB
 	Config *core.Config
 }
 
-func New(conf *core.Config) (*Sqlitestore, error) {
+func New(conf *core.Config) (*Store, error) {
 	db, err := sql.Open("sqlite3", conf.SqliteDB)
 	if err != nil {
 		panic(err)
@@ -32,12 +32,12 @@ func New(conf *core.Config) (*Sqlitestore, error) {
 		log.Println("errExec: ", errExec.Error())
 	}
 
-	return &Sqlitestore{
+	return &Store{
 		db:     db,
 		Config: conf,
 	}, nil
 }
-func (s *Sqlitestore) GetURL(ctx context.Context, id string) (string, error) {
+func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	res := s.db.QueryRowContext(ctx, `
 	SELECT * FROM links WHERE id=$1;
 	`, id)
@@ -55,7 +55,7 @@ func (s *Sqlitestore) GetURL(ctx context.Context, id string) (string, error) {
 	}
 	return "", nil
 }
-func (s *Sqlitestore) SetURL(ctx context.Context, link *core.Link) (string, error) {
+func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	var resID any
 	searchLink := s.db.QueryRowContext(ctx, `
 	SELECT * FROM links WHERE link=$1;
@@ -82,7 +82,7 @@ func (s *Sqlitestore) SetURL(ctx context.Context, link *core.Link) (string, erro
 	return fmt.Sprint(resID), nil
 }
 
-func (s *Sqlitestore) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
+func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
 	/// TODO Пока не работает допилить запрос
 	links := []*core.Link{}
 	res, errQuery := s.db.QueryContext(ctx, `
@@ -106,6 +106,10 @@ func (s *Sqlitestore) GetUserURLS(ctx context.Context, userID string) ([]*core.L
 	return links, nil
 }
 
-func (s *Sqlitestore) Close() error {
+func (s *Store) Close() error {
 	return s.db.Close()
+}
+
+func (s *Store) Ping(ctx context.Context) error {
+	return nil
 }

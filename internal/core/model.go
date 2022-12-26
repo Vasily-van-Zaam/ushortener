@@ -52,6 +52,7 @@ type Config struct {
 	ServerTimeout    int64  `env:"SERVER_TIMEOUT" envDefault:"100"`
 	ExpiresDayCookie int64  `env:"EXPIRES_DAY_COOKIE" envDefault:"365"`
 	SecretKey        string `env:"SECRET_KEY" envDefault:"secretkey"`
+	DataBaseDNS      string `env:"DATA_BASE_DNS"`
 }
 
 func (c *Config) SetDefault() {
@@ -70,6 +71,11 @@ func (c *Config) SetDefault() {
 		flag.StringVar(&c.Filestore, "f", "./store", "path to file ./store.csv")
 	} else {
 		flag.StringVar(&emptyVar, "f", "./store", "path to file ./store.csv or other")
+	}
+	if c.DataBaseDNS == "" {
+		flag.StringVar(&c.DataBaseDNS, "d", "", "path DB")
+	} else {
+		flag.StringVar(&emptyVar, "d", "", "path DB")
 	}
 
 	flag.Parse()

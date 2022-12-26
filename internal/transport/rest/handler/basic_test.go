@@ -53,6 +53,9 @@ func (s *ServiceMock) SetURL(ctx context.Context, link string) (string, error) {
 		}
 	}
 }
+func (s *ServiceMock) Ping(ctx context.Context) error {
+	return nil
+}
 
 func (s *ServiceMock) APISetShorten(
 	ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {

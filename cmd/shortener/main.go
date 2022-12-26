@@ -12,7 +12,7 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/service"
 	filestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/file"
 	memorystore "github.com/Vasily-van-Zaam/ushortener/internal/storage/memory"
-	sqlite "github.com/Vasily-van-Zaam/ushortener/internal/storage/sqlite"
+	"github.com/Vasily-van-Zaam/ushortener/internal/storage/psql"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/middleware"
@@ -32,8 +32,8 @@ func main() {
 	cfg.SetDefault()
 
 	switch {
-	case cfg.SqliteDB != "":
-		storage, err = sqlite.New(&cfg)
+	case cfg.DataBaseDNS != "":
+		storage, err = psql.New(&cfg)
 		if err != nil {
 			log.Panicln(err)
 		}

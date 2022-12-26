@@ -15,6 +15,7 @@ import (
 type BasicService interface {
 	GetURL(ctx context.Context, link string) (string, error)
 	SetURL(ctx context.Context, link string) (string, error)
+	Ping(ctx context.Context) error
 	core.AUTHService
 	// APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 }
@@ -106,4 +107,11 @@ func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 		log.Println(errW)
 	}
 	h.config.LogResponse(w, r, res, http.StatusCreated)
+}
+
+func (h *BasicHandler) Ping(w http.ResponseWriter, r *http.Request) {
+	if (*h.service).Ping(r.Context()) != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	w.WriteHeader(http.StatusOK)
 }

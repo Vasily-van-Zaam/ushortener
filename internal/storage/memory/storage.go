@@ -17,7 +17,7 @@ type Store struct {
 func New(conf *core.Config) (*Store, error) {
 	return &Store{
 		Config: conf,
-		Data:   []*core.Link{},
+		Data:   make([]*core.Link, 0),
 	}, nil
 }
 

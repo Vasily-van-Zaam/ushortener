@@ -2,7 +2,6 @@ package psql
 
 import (
 	"context"
-	"os"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/jackc/pgx/v5"
@@ -14,7 +13,7 @@ type Store struct {
 }
 
 func New(conf *core.Config) (*Store, error) {
-	db, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	db, err := pgx.Connect(context.Background(), conf.DataBaseDNS)
 	if err != nil {
 		panic(err)
 	}

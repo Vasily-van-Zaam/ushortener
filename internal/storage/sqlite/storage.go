@@ -85,16 +85,14 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
 	/// TODO Пока не работает допилить запрос
 	links := []*core.Link{}
-	res, errQuery := s.db.QueryContext(ctx, `
+	res, err := s.db.QueryContext(ctx, `
 	SELECT * FROM links WHERE user_id=$1;
 	`, userID)
-	if errQuery != nil {
-		log.Println("errorGetUserURLS", errQuery)
-	}
-	// linkDB := []*core.Link{}
-
-	err := res.Scan(&links)
 	if err != nil {
+		log.Println("errorGetUserURLS", err)
+	}
+	errScan := res.Scan(&links)
+	if errScan != nil {
 		log.Println("errorScanGetUserURLS", err, links)
 	}
 

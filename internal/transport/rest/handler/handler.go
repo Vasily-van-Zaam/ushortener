@@ -25,9 +25,10 @@ func (h *Handlers) InitAPI(r *chi.Mux) {
 	r.Get("/swagger-docs/*", httpSwagger.Handler())
 	// BASIC
 	r.Get("/", h.basic.GetURL)
+	r.Get("/ping", h.basic.Ping)
 	r.Get("/{id}", h.basic.GetURL)
 	r.Post("/", h.basic.SetURL)
-	r.Post("/ping", h.basic.Ping)
+
 	// API
 	r.Post("/api/shorten", h.api.APISetShorten)
 	r.Get("/api/user/urls", h.api.APIGetUserURLS)

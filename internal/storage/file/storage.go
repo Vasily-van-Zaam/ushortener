@@ -82,12 +82,13 @@ func (s *Filestore) SetURL(ctx context.Context, link *core.Link) (string, error)
 		lastElementID, _ = strconv.Atoi(d[0])
 		line++
 	}
-
-	if _, errWrite := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UserID))); err != nil {
-		return "", errWrite
+	_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UserID)))
+	if errWriteData != nil {
+		return "", errWriteData
 	}
-	if errW := data.writer.WriteByte('\n'); errW != nil {
-		return "", errW
+	errWriteByte := data.writer.WriteByte('\n')
+	if errWriteByte != nil {
+		return "", errWriteByte
 	}
 	err = data.writer.Flush()
 	if err != nil {

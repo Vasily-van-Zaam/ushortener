@@ -83,22 +83,23 @@ func (s *Sqlitestore) SetURL(ctx context.Context, link *core.Link) (string, erro
 }
 
 func (s *Sqlitestore) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
+	/// TODO Пока не работает допилить запрос
 	links := []*core.Link{}
-	res, _ := s.db.QueryContext(ctx, `
+	res, errQuery := s.db.QueryContext(ctx, `
 	SELECT * FROM links WHERE user_id=$1;
 	`, userID)
+	if errQuery != nil {
+		log.Println("errorGetUserURLS", errQuery)
+	}
 	// linkDB := []*core.Link{}
+
 	err := res.Scan(&links)
 	if err != nil {
-		log.Println("errorSelectSqlLiteGet", err, links)
+		log.Println("errorScanGetUserURLS", err, links)
 	}
 
 	log.Println()
-	// if linkDB.ID != 0 {
-	// 	return fmt.Sprint(linkDB.Link), nil
 
-	// 	// return "", errors.New("not Found")
-	// }
 	if userID == "" {
 		return nil, errors.New("not Found")
 	}

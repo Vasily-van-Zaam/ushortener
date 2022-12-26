@@ -81,7 +81,7 @@ func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 	h.config.LogResponse(w, r, string(response), http.StatusCreated)
 }
 
-/// TODO ADD SWAGER
+// / TODO ADD SWAGER
 func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
 	service := *h.service
 
@@ -100,6 +100,6 @@ func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
 	resJs, _ := json.Marshal(res)
 	_, err := w.Write(resJs)
 	if err != nil {
-		///
+		log.Println(err)
 	}
 }

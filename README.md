@@ -4,34 +4,9 @@
 
 # Начало работы
 
-1. Склонируйте репозиторий в любую подходящую директорию на вашем компьютере
-2. В корне репозитория выполните команду `go mod init <name>` (где `<name>` - адрес вашего репозитория на Github без
-   префикса `https://`) для создания модуля
+1. Для старта сервера запустить `go run cmd/shortener/main.go`
+2. Для сборки проекта в bin файл `go build cmd/shortener/main.go`
+3. Генерация документации swagger `swag init -g cmd/shortener/main.go`
 
-# Обновление шаблона
-
-Чтобы иметь возможность получать обновления автотестов и других частей шаблона выполните следующую команды:
-
-```
-git remote add -m main template https://github.com/yandex-praktikum/go-musthave-shortener-tpl.git
-```
-
-Для обновления кода автотестов выполните команду:
-
-```
-git fetch template && git checkout template/main .github
-```
-
-затем добавьте полученые изменения в свой репозиторий.
-
-# Запуск автотестов
-
-Для успешного запуска автотестов вам необходимо давать вашим веткам названия вида `iter<number>`, где `<number>` -
-порядковый номер итерации.
-
-Например в ветке с названием `iter4` запустятся автотесты для итераций с первой по четвертую.
-
-При мерже ветки с итерацией в основную ветку (`main`) будут запускаться все автотесты.
-
-
-~/go/bin/mockgen -destination ./internal/transport/rest/handler/mock/mock_handler.go -package=mock -source=./internal/transport/rest/handler/shortener.go
+# Документация API
+- Для проверки API запросов откройте в браузере http://localhost:8080/swagger-docs/

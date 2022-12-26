@@ -1,0 +1,96 @@
+definitions:
+  core.RequestApiShorten:
+    properties:
+      url:
+        type: string
+    type: object
+  core.ResponseApiShorten:
+    properties:
+      result:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /:
+    post:
+      consumes:
+      - text/plain
+      description: set shortener link
+      parameters:
+      - description: your site link
+        in: body
+        name: link
+        required: true
+        schema:
+          type: string
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: http://localhost:8080/1
+          schema:
+            type: string
+        "400":
+          description: error
+          schema:
+            type: string
+      summary: Set link shortener
+      tags:
+      - Main
+  /{id}:
+    get:
+      consumes:
+      - text/plain
+      description: get shortener link by ID
+      parameters:
+      - description: link ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "307":
+          description: redirect response
+          headers:
+            Location:
+              description: https://some.com/link
+              type: string
+          schema:
+            type: string
+        "400":
+          description: error
+          schema:
+            type: string
+      summary: Get link shortener
+      tags:
+      - Main
+  /api/shorten:
+    post:
+      consumes:
+      - text/plain
+      description: set shortener link 1
+      parameters:
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/core.RequestApiShorten'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/core.ResponseApiShorten'
+        "400":
+          description: error
+          schema:
+            type: string
+      summary: Api Set link shortener
+      tags:
+      - API
+swagger: "2.0"

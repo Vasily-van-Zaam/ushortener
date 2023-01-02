@@ -27,3 +27,4 @@ store_shortener.db
 .DS_Store
 cmd/shortener/store_shortener.db
 cmd/shortener/__debug_bin
+_data

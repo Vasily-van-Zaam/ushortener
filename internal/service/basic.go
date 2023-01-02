@@ -33,8 +33,8 @@ func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) 
 	user := core.User{}
 	user.FromAny(ctx.Value(core.USERDATA))
 	l := core.Link{
-		Link:   link,
-		UserID: user.ID,
+		Link: link,
+		UUID: user.ID,
 	}
 	res, err := (*s.storage).SetURL(ctx, &l)
 	log.Println("====USER ID", user.ID)

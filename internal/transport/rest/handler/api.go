@@ -78,6 +78,7 @@ func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 	if errW != nil {
 		log.Println(errW)
 	}
+
 	h.config.LogResponse(w, r, string(response), http.StatusCreated)
 }
 

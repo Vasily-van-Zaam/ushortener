@@ -24,7 +24,7 @@ func New(conf *core.Config) (*Store, error) {
 	_, errExec := db.Exec(`
 	CREATE TABLE IF NOT EXISTS links(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		user_id CHAR(255),
+		uuid CHAR(255),
 		link TEXT UNIQUE,
 		short_link char(255) UNIQUE
 	);`)
@@ -42,7 +42,7 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	SELECT * FROM links WHERE id=$1;
 	`, id)
 	linkDB := core.Link{}
-	err := res.Scan(&linkDB.ID, &linkDB.UserID, &linkDB.Link, &linkDB.ShortLink)
+	err := res.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.ShortLink)
 	if err != nil {
 		log.Println("errorSelectSqlLiteGet", err, linkDB)
 	}
@@ -63,7 +63,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 
 	linkDB := core.Link{}
 
-	err := searchLink.Scan(&linkDB.ID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UserID)
+	err := searchLink.Scan(&linkDB.ID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UUID)
 	if err != nil {
 		log.Println("errorSelectSqlLitePost", err, linkDB)
 	}
@@ -72,8 +72,8 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 		return fmt.Sprint(linkDB.ID), nil
 	}
 	res, err := s.db.ExecContext(ctx, `
-	INSERT INTO links (link, user_id) VALUES ($1, $2);
-	`, link.Link, link.UserID)
+	INSERT INTO links (link, uuid) VALUES ($1, $2);
+	`, link.Link, link.UUID)
 	if err != nil {
 		log.Println("errorInsertSqlLitePost", err)
 	}
@@ -86,7 +86,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	/// TODO Пока не работает допилить запрос
 	links := []*core.Link{}
 	// res, err := s.db.QueryContext(ctx, `
-	// SELECT * FROM links WHERE user_id=$1;
+	// SELECT * FROM links WHERE uuid=$1;
 	// `, userID)
 	// if err != nil {
 	// 	log.Println("errorGetUserURLS", err)

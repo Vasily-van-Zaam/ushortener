@@ -82,7 +82,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 		lastElementID, _ = strconv.Atoi(d[0])
 		line++
 	}
-	_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UserID)))
+	_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UUID)))
 	if errWriteData != nil {
 		return "", errWriteData
 	}
@@ -111,9 +111,9 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 			if d[2] == userID {
 				id, _ := strconv.Atoi(d[0])
 				links = append(links, &core.Link{
-					ID:     id,
-					Link:   d[1],
-					UserID: d[2],
+					ID:   id,
+					Link: d[1],
+					UUID: d[2],
 				})
 			}
 		}

@@ -18,7 +18,8 @@ type Link struct {
 	ID        int    `db:"id" json:"id"`
 	Link      string `db:"link" json:"link"`
 	ShortLink string `db:"short_link" json:"short_link"`
-	UserID    string `db:"user_id" json:"user_id"`
+	UUID      string `db:"uuid" json:"uuid"`
+	UserID    int    `db:"user_id" json:"user_id"`
 }
 
 type User struct {
@@ -52,7 +53,7 @@ type Config struct {
 	ServerTimeout    int64  `env:"SERVER_TIMEOUT" envDefault:"100"`
 	ExpiresDayCookie int64  `env:"EXPIRES_DAY_COOKIE" envDefault:"365"`
 	SecretKey        string `env:"SECRET_KEY" envDefault:"secretkey"`
-	DataBaseDNS      string `env:"DATA_BASE_DNS"`
+	DataBaseDNS      string `env:"DATABASE_DSN"`
 }
 
 func (c *Config) SetDefault() {

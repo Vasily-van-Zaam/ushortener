@@ -26,8 +26,8 @@ func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 	user := core.User{}
 	user.FromAny(ctx.Value(core.USERDATA))
 	l := core.Link{
-		Link:   request.URL,
-		UserID: user.ID,
+		Link: request.URL,
+		UUID: user.ID,
 	}
 	res, err := (*s.storage).SetURL(ctx, &l)
 	if err != nil {

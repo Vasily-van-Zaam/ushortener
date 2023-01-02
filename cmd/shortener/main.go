@@ -31,6 +31,7 @@ func main() {
 	}
 	cfg.SetDefault()
 
+	log.Println(cfg.DataBaseDNS)
 	switch {
 	case cfg.DataBaseDNS != "":
 		storage, err = psql.New(&cfg)

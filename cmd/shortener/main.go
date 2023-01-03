@@ -5,8 +5,6 @@ import (
 
 	"github.com/caarlos0/env/v6"
 
-	_ "github.com/mattn/go-sqlite3"
-
 	"github.com/Vasily-van-Zaam/ushortener/docs"
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/Vasily-van-Zaam/ushortener/internal/service"

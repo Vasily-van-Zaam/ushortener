@@ -140,6 +140,50 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	return res, nil
 }
 
+func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
+	response := []*core.Link{}
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		errRllback := tx.Rollback(ctx)
+		if errRllback != nil {
+			log.Print("errRllback:", errRllback)
+		}
+	}()
+
+	for _, l := range links {
+		searchLink := s.db.QueryRow(ctx, `
+			SELECT * FROM links WHERE link=$1;
+		`, l.Link)
+
+		linkDB := core.Link{}
+		err = searchLink.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UserID)
+		if err != nil {
+			log.Println("errorSelectSqlLitePost", err, linkDB)
+		}
+		if linkDB.ID != 0 {
+			response = append(response, &linkDB)
+		} else {
+			errInsert := tx.QueryRow(ctx, `
+				INSERT INTO links (link, uuid) VALUES ($1, $2) RETURNING id;
+			`, l.Link, l.UUID,
+			).Scan(&linkDB.ID)
+			if errInsert != nil {
+				log.Println("errInsert:", errInsert)
+			}
+			response = append(response, &linkDB)
+		}
+	}
+	errCommit := tx.Commit(ctx)
+	if errCommit != nil {
+		log.Println("errCommit:", errCommit)
+		return nil, errCommit
+	}
+	return response, nil
+}
+
 func (s *Store) Close() error {
 	return s.db.Close(context.Background())
 }

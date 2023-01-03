@@ -1,4 +1,4 @@
-package handler
+package handler_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
 )
 
 // /// mock.
@@ -19,7 +20,7 @@ func (s *APIServiceMock) APISetShorten(
 
 func TestApiHandler_APISetShorten(t *testing.T) {
 	type fields struct {
-		service APIService
+		service handler.APIService
 		config  *core.Config
 	}
 	type args struct {
@@ -35,9 +36,9 @@ func TestApiHandler_APISetShorten(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &APIHandler{
-				service: &tt.fields.service,
-				config:  tt.fields.config,
+			h := &handler.APIHandler{
+				Service: &tt.fields.service,
+				Config:  tt.fields.config,
 			}
 			h.APISetShorten(tt.args.w, tt.args.r)
 		})

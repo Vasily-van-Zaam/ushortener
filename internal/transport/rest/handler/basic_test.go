@@ -1,4 +1,4 @@
-package handler
+package handler_test
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
@@ -65,7 +66,7 @@ func (s *ServiceMock) APISetShorten(
 func TestShortenerHandler_GetSetURL(t *testing.T) {
 	service := ServiceMock{}
 	type fields struct {
-		service BasicService
+		service handler.BasicService
 	}
 	type want struct {
 		code        int
@@ -194,12 +195,12 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
-			h := &BasicHandler{
-				service: &tt.fields.service,
-				config:  &cfg,
+			h := &handler.BasicHandler{
+				Service: &tt.fields.service,
+				Config:  &cfg,
 			}
 			r := chi.NewRouter()
-			hs := NewHandlers(h, nil)
+			hs := handler.NewHandlers(h, nil)
 			hs.InitAPI(r)
 			r.ServeHTTP(tt.args.w, tt.args.r)
 

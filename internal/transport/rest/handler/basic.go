@@ -21,14 +21,14 @@ type BasicService interface {
 }
 
 type BasicHandler struct {
-	service *BasicService
-	config  *core.Config
+	Service *BasicService
+	Config  *core.Config
 }
 
 func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
 	return &BasicHandler{
-		service: &s,
-		config:  conf,
+		Service: &s,
+		Config:  conf,
 	}
 }
 
@@ -43,7 +43,7 @@ func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
 // @Failure      400  {string} 	"error"
 // @Router       /{id} [get].
 func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
-	service := *h.service
+	service := *h.Service
 	ctx := r.Context()
 
 	link := chi.URLParam(r, "id")
@@ -52,7 +52,7 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	if errW != nil {
 		log.Println(errW)
 	}
-	h.config.LogResponse(w, r, res, http.StatusTemporaryRedirect)
+	h.Config.LogResponse(w, r, res, http.StatusTemporaryRedirect)
 }
 
 // @Tags         Main
@@ -75,29 +75,29 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {string} 	"error"
 // @Router       / [post].
 func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
-	service := *h.service
+	service := *h.Service
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
-		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if len(body) == 0 {
 		w.WriteHeader(http.StatusCreated)
-		_, errW := w.Write([]byte(h.config.BaseURL))
+		_, errW := w.Write([]byte(h.Config.BaseURL))
 		if errW != nil {
 			log.Println(errW)
 		}
-		h.config.LogResponse(w, r, h.config.BaseURL, http.StatusCreated)
+		h.Config.LogResponse(w, r, h.Config.BaseURL, http.StatusCreated)
 		return
 	}
 
 	res, err := service.SetURL(ctx, strings.TrimSpace(string(body)))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
-		h.config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain")
@@ -106,11 +106,11 @@ func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	if errW != nil {
 		log.Println(errW)
 	}
-	h.config.LogResponse(w, r, res, http.StatusCreated)
+	h.Config.LogResponse(w, r, res, http.StatusCreated)
 }
 
 func (h *BasicHandler) Ping(w http.ResponseWriter, r *http.Request) {
-	if (*h.service).Ping(r.Context()) != nil {
+	if (*h.Service).Ping(r.Context()) != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.WriteHeader(http.StatusOK)

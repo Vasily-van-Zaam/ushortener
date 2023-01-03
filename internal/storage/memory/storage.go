@@ -36,13 +36,14 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	for _, l := range s.Data {
 		if l.Link == link.Link {
-			return fmt.Sprint(s.Config.BaseURL, "/", l.ID), nil
+			return fmt.Sprint(l.ID), nil
 		}
 	}
 	dataLength := len(s.Data) + 1
 	d := core.Link{
 		ID:   dataLength,
 		Link: link.Link,
+		UUID: link.UUID,
 	}
 	s.Data = append(s.Data, &d)
 	return fmt.Sprint(d.ID), nil
@@ -51,8 +52,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
 	links := []*core.Link{}
 	for _, l := range s.Data {
-		idInt, _ := strconv.Atoi(userID)
-		if l.ID == idInt {
+		if l.UUID == userID {
 			links = append(links, l)
 		}
 	}
@@ -62,6 +62,27 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	return links, nil
 }
 
+func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
+	result := []*core.Link{}
+	for _, l := range links {
+		id := len(s.Data) + 1
+		exists := false
+		for _, ls := range s.Data {
+			if ls.Link == l.Link {
+				l.ID = ls.ID
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			l.ID = id
+			s.Data = append(s.Data, l)
+		}
+		result = append(result, l)
+	}
+
+	return result, nil
+}
 func (s *Store) Close() error {
 	return nil
 }

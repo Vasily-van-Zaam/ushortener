@@ -127,6 +127,70 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	return links, nil
 }
 
+func scan(data *Event) []*core.Link {
+	res := []*core.Link{}
+	line := 0
+	lastElementID := 0
+	for data.scanner.Scan() {
+		d := strings.Split(data.scanner.Text(), ",")
+		log.Println(d, line)
+		lastElementID, _ = strconv.Atoi(d[0])
+		if len(d) >= 1 {
+			res = append(res, &core.Link{
+				ID:   lastElementID,
+				UUID: d[2],
+				Link: d[1],
+			})
+		}
+		line++
+	}
+	return res
+}
+
+func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
+	data, err := s.newOpenFile()
+	if err != nil {
+		return nil, err
+	}
+	dataList := scan(data)
+	result := []*core.Link{}
+	count := 0
+	for _, l := range links {
+		exists := false
+		lastElementID := 0
+		for _, ls := range dataList {
+			if ls.Link == l.Link {
+				exists = true
+				result = append(result, ls)
+			}
+			lastElementID = ls.ID
+		}
+
+		if exists {
+			continue
+		}
+		count++
+		_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+count, ",", l.Link, ",", l.UUID)))
+		if errWriteData != nil {
+			return nil, errWriteData
+		}
+		errWriteByte := data.writer.WriteByte('\n')
+		if errWriteByte != nil {
+			return nil, errWriteByte
+		}
+		err = data.writer.Flush()
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, &core.Link{
+			ID:   lastElementID + count,
+			Link: l.Link,
+			UUID: l.UUID,
+		})
+	}
+	return result, nil
+}
+
 func (s *Store) Close() error {
 	return nil
 }

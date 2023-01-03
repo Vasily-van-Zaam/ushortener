@@ -104,6 +104,10 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	return links, nil
 }
 
+func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
+	return nil, nil
+}
+
 func (s *Store) Close() error {
 	return s.db.Close()
 }

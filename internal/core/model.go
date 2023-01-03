@@ -45,6 +45,15 @@ type ResponseAPIUserURL struct {
 	OriginalURL string `json:"original_url"`
 }
 
+type RequestAPIShortenBatch struct {
+	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url"`
+}
+type ResponseAPIShortenBatch struct {
+	CorrelationID string `json:"correlation_id"`
+	ShortURL      string `json:"short_url"`
+}
+
 type Config struct {
 	ServerAddress    string `env:"SERVER_ADDRESS"`
 	BaseURL          string `env:"BASE_URL"`

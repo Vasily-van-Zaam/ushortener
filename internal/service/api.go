@@ -56,3 +56,29 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 
 	return resAPI, err
 }
+
+func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPIShortenBatch) ([]*core.ResponseAPIShortenBatch, error) {
+	user := core.User{}
+	user.FromAny(ctx.Value(core.USERDATA))
+	links := []*core.Link{}
+	for _, r := range request {
+		links = append(links, &core.Link{
+			UUID: user.ID,
+			Link: r.OriginalURL,
+		})
+	}
+	res := []*core.ResponseAPIShortenBatch{}
+	resDb, err := (*s.storage).SetURLSBatch(ctx, links)
+
+	if err != nil {
+		return nil, err
+	}
+	for i, r := range resDb {
+		res = append(res, &core.ResponseAPIShortenBatch{
+			CorrelationID: request[i].CorrelationID,
+			ShortURL:      fmt.Sprint(s.config.BaseURL, "/", r.ID),
+		})
+	}
+
+	return res, nil
+}

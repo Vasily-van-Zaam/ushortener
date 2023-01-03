@@ -19,19 +19,17 @@ type Event struct {
 	writer  *bufio.Writer
 }
 
-type Filestore struct {
+type Store struct {
 	Config *core.Config
 }
 
-func New(conf *core.Config) (*Filestore, error) {
-
-	return &Filestore{
+func New(conf *core.Config) (*Store, error) {
+	return &Store{
 		Config: conf,
 	}, nil
-
 }
 
-func (s *Filestore) newOpenFile() (*Event, error) {
+func (s *Store) newOpenFile() (*Event, error) {
 	file, err := os.OpenFile(s.Config.Filestore, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
 		return nil, err
@@ -43,7 +41,7 @@ func (s *Filestore) newOpenFile() (*Event, error) {
 	}, nil
 }
 
-func (s *Filestore) GetURL(ctx context.Context, id string) (string, error) {
+func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	data, err := s.newOpenFile()
 	if err != nil {
 		return "", err
@@ -64,11 +62,9 @@ func (s *Filestore) GetURL(ctx context.Context, id string) (string, error) {
 	if id == "" {
 		return "", errors.New("not Found")
 	}
-	return s.Config.BaseURL, nil
-
+	return "", nil
 }
-func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
-
+func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	data, err := s.newOpenFile()
 	if err != nil {
 		return "", err
@@ -79,28 +75,128 @@ func (s *Filestore) SetURL(ctx context.Context, link string) (string, error) {
 		d := strings.Split(data.scanner.Text(), ",")
 		log.Println(d, line)
 		if len(d) >= 1 {
-			if d[1] == link {
-				return fmt.Sprint(s.Config.BaseURL, "/", d[0]), nil
+			if d[1] == link.Link {
+				return fmt.Sprint(d[0]), core.NewErrConflict()
 			}
 		}
 		lastElementID, _ = strconv.Atoi(d[0])
 		line++
 	}
-
-	if _, err := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link))); err != nil {
-		return "", err
+	_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UUID)))
+	if errWriteData != nil {
+		return "", errWriteData
 	}
-	if err := data.writer.WriteByte('\n'); err != nil {
-		return "", err
+	errWriteByte := data.writer.WriteByte('\n')
+	if errWriteByte != nil {
+		return "", errWriteByte
 	}
 	err = data.writer.Flush()
 	if err != nil {
 		return "", err
 	}
 	defer data.file.Close()
-	return fmt.Sprint(s.Config.BaseURL, "/", lastElementID+1), nil
+	return fmt.Sprint(lastElementID + 1), nil
 }
 
-func (s *Filestore) Close() error {
+func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
+	data, err := s.newOpenFile()
+	if err != nil {
+		return nil, err
+	}
+	links := []*core.Link{}
+	line := 0
+	for data.scanner.Scan() {
+		d := strings.Split(data.scanner.Text(), ",")
+		if len(d) != 0 {
+			if d[2] == userID {
+				id, _ := strconv.Atoi(d[0])
+				links = append(links, &core.Link{
+					ID:   id,
+					Link: d[1],
+					UUID: d[2],
+				})
+			}
+		}
+		line++
+	}
+	defer data.file.Close()
+
+	if userID == "" {
+		return nil, errors.New("not Found")
+	}
+	return links, nil
+}
+
+func scan(data *Event) []*core.Link {
+	res := []*core.Link{}
+	line := 0
+	lastElementID := 0
+	for data.scanner.Scan() {
+		d := strings.Split(data.scanner.Text(), ",")
+		log.Println(d, line)
+		lastElementID, _ = strconv.Atoi(d[0])
+		if len(d) >= 1 {
+			res = append(res, &core.Link{
+				ID:   lastElementID,
+				UUID: d[2],
+				Link: d[1],
+			})
+		}
+		line++
+	}
+	return res
+}
+
+func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
+	data, err := s.newOpenFile()
+	if err != nil {
+		return nil, err
+	}
+	dataList := scan(data)
+	result := []*core.Link{}
+	count := 0
+	var errConflict *core.ErrConflict
+	for _, l := range links {
+		exists := false
+		lastElementID := 0
+		for _, ls := range dataList {
+			if ls.Link == l.Link {
+				exists = true
+				result = append(result, ls)
+			}
+			lastElementID = ls.ID
+		}
+
+		if exists {
+			errConflict = core.NewErrConflict()
+			continue
+		}
+		count++
+		_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+count, ",", l.Link, ",", l.UUID)))
+		if errWriteData != nil {
+			return nil, errWriteData
+		}
+		errWriteByte := data.writer.WriteByte('\n')
+		if errWriteByte != nil {
+			return nil, errWriteByte
+		}
+		err = data.writer.Flush()
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, &core.Link{
+			ID:   lastElementID + count,
+			Link: l.Link,
+			UUID: l.UUID,
+		})
+	}
+	return result, errConflict
+}
+
+func (s *Store) Close() error {
+	return nil
+}
+
+func (s *Store) Ping(ctx context.Context) error {
 	return nil
 }

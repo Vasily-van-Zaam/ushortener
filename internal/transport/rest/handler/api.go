@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -54,14 +55,18 @@ func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 	query := core.RequestAPIShorten{}
 	responseAPI := &core.ResponseAPIShorten{}
 	err = json.Unmarshal(body, &query)
+	var conflictError *core.ErrConflict
 	if err != nil {
 
 	} else {
 		res, errAPI := service.APISetShorten(ctx, &query)
-		if errAPI != nil {
+		if errAPI != nil && !errors.Is(errAPI, core.NewErrConflict()) {
 			http.Error(w, fmt.Sprintf("error: %s", errAPI.Error()), http.StatusBadRequest)
 			h.Config.LogResponse(w, r, errAPI.Error(), http.StatusBadRequest)
 			return
+		}
+		if errors.Is(errAPI, core.NewErrConflict()) {
+			conflictError = core.NewErrConflict()
 		}
 		responseAPI = res
 	}
@@ -75,7 +80,11 @@ func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 	response, _ := json.Marshal(responseAPI)
 
 	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	if conflictError != nil {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
 	_, errW := w.Write(response)
 
 	if errW != nil {
@@ -151,8 +160,13 @@ func (h *APIHandler) APISetShortenBatch(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	if errors.Is(errAPI, core.NewErrConflict()) {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
 
 	response, _ := json.Marshal(res)
 	_, err = w.Write(response)

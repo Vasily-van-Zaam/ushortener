@@ -86,7 +86,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	}
 
 	if linkDB.ID != 0 {
-		return fmt.Sprint(linkDB.ID), nil
+		return fmt.Sprint(linkDB.ID), core.NewErrConflict()
 	}
 
 	tx, err := s.db.Begin(ctx)
@@ -141,6 +141,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 }
 
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
+	var errConflict *core.ErrConflict
 	response := []*core.Link{}
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -164,6 +165,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 			log.Println("errorSelectSqlLitePost", err, linkDB)
 		}
 		if linkDB.ID != 0 {
+			errConflict = core.NewErrConflict()
 			response = append(response, &linkDB)
 		} else {
 			errInsert := tx.QueryRow(ctx, `
@@ -181,7 +183,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 		log.Println("errCommit:", errCommit)
 		return nil, errCommit
 	}
-	return response, nil
+	return response, errConflict
 }
 
 func (s *Store) Close() error {

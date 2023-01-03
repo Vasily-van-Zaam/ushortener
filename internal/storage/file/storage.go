@@ -76,7 +76,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 		log.Println(d, line)
 		if len(d) >= 1 {
 			if d[1] == link.Link {
-				return fmt.Sprint(d[0]), nil
+				return fmt.Sprint(d[0]), core.NewErrConflict()
 			}
 		}
 		lastElementID, _ = strconv.Atoi(d[0])
@@ -155,6 +155,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 	dataList := scan(data)
 	result := []*core.Link{}
 	count := 0
+	var errConflict *core.ErrConflict
 	for _, l := range links {
 		exists := false
 		lastElementID := 0
@@ -167,6 +168,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 		}
 
 		if exists {
+			errConflict = core.NewErrConflict()
 			continue
 		}
 		count++
@@ -188,7 +190,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 			UUID: l.UUID,
 		})
 	}
-	return result, nil
+	return result, errConflict
 }
 
 func (s *Store) Close() error {

@@ -22,6 +22,16 @@ type Link struct {
 	UserID    int    `db:"user_id" json:"user_id"`
 }
 
+type ErrConflict struct{}
+
+func (e *ErrConflict) Error() string {
+	return "conflict"
+}
+
+func NewErrConflict() *ErrConflict {
+	return &ErrConflict{}
+}
+
 type User struct {
 	ID string `db:"id" json:"id"`
 }

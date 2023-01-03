@@ -36,7 +36,7 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	for _, l := range s.Data {
 		if l.Link == link.Link {
-			return fmt.Sprint(l.ID), nil
+			return fmt.Sprint(l.ID), core.NewErrConflict()
 		}
 	}
 	dataLength := len(s.Data) + 1
@@ -64,6 +64,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
 	result := []*core.Link{}
+	var errConflict *core.ErrConflict
 	for _, l := range links {
 		id := len(s.Data) + 1
 		exists := false
@@ -71,6 +72,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 			if ls.Link == l.Link {
 				l.ID = ls.ID
 				exists = true
+				errConflict = core.NewErrConflict()
 				break
 			}
 		}
@@ -81,7 +83,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 		result = append(result, l)
 	}
 
-	return result, nil
+	return result, errConflict
 }
 func (s *Store) Close() error {
 	return nil

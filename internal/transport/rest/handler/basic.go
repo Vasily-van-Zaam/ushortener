@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -95,13 +96,18 @@ func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := service.SetURL(ctx, strings.TrimSpace(string(body)))
-	if err != nil {
+	if err != nil && !errors.Is(err, core.NewErrConflict()) {
 		http.Error(w, fmt.Sprintf("error: %s", err.Error()), http.StatusBadRequest)
 		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
+	if errors.Is(err, core.NewErrConflict()) {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
+
 	_, errW := w.Write([]byte(res))
 	if errW != nil {
 		log.Println(errW)

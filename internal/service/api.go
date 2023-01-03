@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -30,12 +31,12 @@ func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 		UUID: user.ID,
 	}
 	res, err := (*s.storage).SetURL(ctx, &l)
-	if err != nil {
+	if err != nil && !errors.Is(err, core.NewErrConflict()) {
 		return nil, err
 	}
 	return &core.ResponseAPIShorten{
 		Result: s.config.BaseURL + "/" + res,
-	}, nil
+	}, err
 }
 
 func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error) {
@@ -70,9 +71,9 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 	res := []*core.ResponseAPIShortenBatch{}
 	resDB, err := (*s.storage).SetURLSBatch(ctx, links)
 
-	if err != nil {
-		return nil, err
-	}
+	// if err != nil && !errors.Is(err, core.NewErrConflict()) {
+	// 	return nil, err
+	// }
 	for i, r := range resDB {
 		res = append(res, &core.ResponseAPIShortenBatch{
 			CorrelationID: request[i].CorrelationID,
@@ -80,5 +81,5 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 		})
 	}
 
-	return res, nil
+	return res, err
 }

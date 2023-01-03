@@ -68,12 +68,12 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 		})
 	}
 	res := []*core.ResponseAPIShortenBatch{}
-	resDb, err := (*s.storage).SetURLSBatch(ctx, links)
+	resDB, err := (*s.storage).SetURLSBatch(ctx, links)
 
 	if err != nil {
 		return nil, err
 	}
-	for i, r := range resDb {
+	for i, r := range resDB {
 		res = append(res, &core.ResponseAPIShortenBatch{
 			CorrelationID: request[i].CorrelationID,
 			ShortURL:      fmt.Sprint(s.config.BaseURL, "/", r.ID),

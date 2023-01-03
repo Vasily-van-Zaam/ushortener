@@ -159,4 +159,5 @@ func (h *APIHandler) APISetShortenBatch(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Println(err)
 	}
+	h.Config.LogResponse(w, r, string(response), http.StatusCreated)
 }

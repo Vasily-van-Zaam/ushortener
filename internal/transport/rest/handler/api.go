@@ -152,7 +152,7 @@ func (h *APIHandler) APISetShortenBatch(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 
 	response, _ := json.Marshal(res)
 	_, err = w.Write(response)

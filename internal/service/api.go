@@ -10,14 +10,14 @@ import (
 )
 
 type API struct {
-	storage *Storage
+	storage Storage
 	config  *core.Config
 	core.AUTHService
 }
 
 func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
 	return &API{
-		s,
+		*s,
 		conf,
 		auth,
 	}
@@ -25,12 +25,16 @@ func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
 
 func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
 	user := core.User{}
-	user.FromAny(ctx.Value(core.USERDATA))
+
+	err := user.SetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	l := core.Link{
 		Link: request.URL,
 		UUID: user.ID,
 	}
-	res, err := (*s.storage).SetURL(ctx, &l)
+	res, err := s.storage.SetURL(ctx, &l)
 	if err != nil && !errors.Is(err, core.NewErrConflict()) {
 		return nil, err
 	}
@@ -41,18 +45,25 @@ func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 
 func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error) {
 	user := core.User{}
-	user.FromAny(ctx.Value(core.USERDATA))
-	res, err := (*s.storage).GetUserURLS(ctx, user.ID)
+	err := user.SetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	res, err := s.storage.GetUserURLS(ctx, user.ID)
 	if err != nil {
 		log.Println("ERROR: GetUserURLS", err)
 	}
 
-	resAPI := []*core.ResponseAPIUserURL{}
+	resAPI := make([]*core.ResponseAPIUserURL, 0, 10)
 	for _, r := range res {
-		resAPI = append(resAPI, &core.ResponseAPIUserURL{
-			ShortURL:    fmt.Sprint(s.config.BaseURL, "/", r.ID),
-			OriginalURL: r.Link,
-		})
+		log.Println(r)
+		if r != nil {
+			resAPI = append(resAPI, &core.ResponseAPIUserURL{
+				ShortURL:    fmt.Sprint(s.config.BaseURL, "/", r.ID),
+				OriginalURL: r.Link,
+			})
+		}
+
 	}
 
 	return resAPI, err
@@ -60,16 +71,19 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 
 func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPIShortenBatch) ([]*core.ResponseAPIShortenBatch, error) {
 	user := core.User{}
-	user.FromAny(ctx.Value(core.USERDATA))
-	links := []*core.Link{}
+	err := user.SetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	links := make([]*core.Link, 0, 10)
 	for _, r := range request {
 		links = append(links, &core.Link{
 			UUID: user.ID,
 			Link: r.OriginalURL,
 		})
 	}
-	res := []*core.ResponseAPIShortenBatch{}
-	resDB, err := (*s.storage).SetURLSBatch(ctx, links)
+	res := make([]*core.ResponseAPIShortenBatch, 0, 10)
+	resDB, err := s.storage.SetURLSBatch(ctx, links)
 
 	// if err != nil && !errors.Is(err, core.NewErrConflict()) {
 	// 	return nil, err

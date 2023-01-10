@@ -103,7 +103,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	if err != nil {
 		return nil, err
 	}
-	links := []*core.Link{}
+	links := make([]*core.Link, 0, 10)
 	line := 0
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
@@ -128,7 +128,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 }
 
 func scan(data *Event) []*core.Link {
-	res := []*core.Link{}
+	res := make([]*core.Link, 0, 10)
 	line := 0
 	lastElementID := 0
 	for data.scanner.Scan() {
@@ -153,7 +153,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 		return nil, err
 	}
 	dataList := scan(data)
-	result := []*core.Link{}
+	result := make([]*core.Link, 0, 10)
 	count := 0
 	var errConflict *core.ErrConflict
 	for _, l := range links {

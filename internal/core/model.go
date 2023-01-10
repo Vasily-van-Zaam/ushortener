@@ -1,11 +1,12 @@
 package core
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"log"
 	"net/http"
-	"reflect"
 )
 
 type UserData string
@@ -36,10 +37,13 @@ type User struct {
 	ID string `db:"id" json:"id"`
 }
 
-func (u *User) FromAny(v any) {
-	if reflect.TypeOf(v) == reflect.TypeOf(User{}) {
-		u.ID = v.(User).ID
+func (u *User) SetUserIDFromContext(ctx context.Context) error {
+	v, ok := ctx.Value(USERDATA).(User)
+	if !ok {
+		return errors.New("ERROR COOCIES")
 	}
+	u.ID = v.ID
+	return nil
 }
 
 type RequestAPIShorten struct {

@@ -126,7 +126,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 		log.Println("error query", err)
 	}
 	defer query.Close()
-	res := []*core.Link{}
+	res := make([]*core.Link, 0, 10)
 	for query.Next() {
 		linkDB := &core.Link{}
 		errScan := query.Scan(&linkDB.ID, &linkDB.Link)
@@ -142,7 +142,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
 	var errConflict *core.ErrConflict
-	response := []*core.Link{}
+	response := make([]*core.Link, 0, 10)
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return nil, err

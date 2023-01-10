@@ -17,13 +17,13 @@ type Storage interface {
 }
 
 type AUTHService struct {
-	storage *Storage
+	storage Storage
 	config  *core.Config
 }
 
 func NewAuth(conf *core.Config, s *Storage) *AUTHService {
 	return &AUTHService{
-		storage: s,
+		storage: *s,
 		config:  conf,
 	}
 }

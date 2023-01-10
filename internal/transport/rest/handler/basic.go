@@ -18,17 +18,16 @@ type BasicService interface {
 	SetURL(ctx context.Context, link string) (string, error)
 	Ping(ctx context.Context) error
 	core.AUTHService
-	// APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 }
 
 type BasicHandler struct {
-	Service *BasicService
+	Service BasicService
 	Config  *core.Config
 }
 
 func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
 	return &BasicHandler{
-		Service: &s,
+		Service: s,
 		Config:  conf,
 	}
 }
@@ -44,7 +43,7 @@ func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
 // @Failure      400  {string} 	"error"
 // @Router       /{id} [get].
 func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+	service := h.Service
 	ctx := r.Context()
 
 	link := chi.URLParam(r, "id")
@@ -76,7 +75,7 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {string} 	"error"
 // @Router       / [post].
 func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+	service := h.Service
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -116,7 +115,7 @@ func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BasicHandler) Ping(w http.ResponseWriter, r *http.Request) {
-	if (*h.Service).Ping(r.Context()) != nil {
+	if h.Service.Ping(r.Context()) != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.WriteHeader(http.StatusOK)

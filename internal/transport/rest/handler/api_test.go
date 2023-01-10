@@ -37,7 +37,7 @@ func TestApiHandler_APISetShorten(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &handler.APIHandler{
-				Service: &tt.fields.service,
+				Service: tt.fields.service,
 				Config:  tt.fields.config,
 			}
 			h.APISetShorten(tt.args.w, tt.args.r)

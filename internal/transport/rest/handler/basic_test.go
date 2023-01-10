@@ -196,7 +196,7 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			h := &handler.BasicHandler{
-				Service: &tt.fields.service,
+				Service: tt.fields.service,
 				Config:  &cfg,
 			}
 			r := chi.NewRouter()

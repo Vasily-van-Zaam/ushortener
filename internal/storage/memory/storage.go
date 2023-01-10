@@ -50,7 +50,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 }
 
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
-	links := []*core.Link{}
+	links := make([]*core.Link, 0, 10)
 	for _, l := range s.Data {
 		if l.UUID == userID {
 			links = append(links, l)
@@ -63,7 +63,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 }
 
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
-	result := []*core.Link{}
+	result := make([]*core.Link, 0, 10)
 	var errConflict *core.ErrConflict
 	for _, l := range links {
 		id := len(s.Data) + 1

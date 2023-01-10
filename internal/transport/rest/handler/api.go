@@ -22,13 +22,13 @@ type APIService interface {
 }
 
 type APIHandler struct {
-	Service *APIService
+	Service APIService
 	Config  *core.Config
 }
 
 func NewAPI(s APIService, conf *core.Config) *APIHandler {
 	return &APIHandler{
-		Service: &s,
+		Service: s,
 		Config:  conf,
 	}
 }
@@ -43,7 +43,7 @@ func NewAPI(s APIService, conf *core.Config) *APIHandler {
 // @Failure      400  {string} 	"error"
 // @Router       /api/shorten [post].
 func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+	service := h.Service
 
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
@@ -104,7 +104,7 @@ func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {string} 	"error"
 // @Router       /api/user/urls [get].
 func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+	service := h.Service
 
 	res, errAPI := service.APIGetUserURLS(r.Context())
 	if errAPI != nil {
@@ -131,7 +131,7 @@ func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
 // TODO дописать инструкциюы
 // @Router       /api/shorten/batch [post].
 func (h *APIHandler) APISetShortenBatch(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+	service := h.Service
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -139,7 +139,7 @@ func (h *APIHandler) APISetShortenBatch(w http.ResponseWriter, r *http.Request) 
 		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
-	request := []*core.RequestAPIShortenBatch{}
+	request := make([]*core.RequestAPIShortenBatch, 0, 10)
 	err = json.Unmarshal(body, &request)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)

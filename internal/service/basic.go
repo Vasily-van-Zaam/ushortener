@@ -9,35 +9,37 @@ import (
 )
 
 type BasicService struct {
-	storage *Storage
+	storage Storage
 	config  *core.Config
 	core.AUTHService
 }
 
 func NewBasic(conf *core.Config, s *Storage, auth *AUTHService) *BasicService {
 	return &BasicService{
-		s,
+		*s,
 		conf,
 		auth,
 	}
 }
 
 func (s *BasicService) GetURL(ctx context.Context, id string) (string, error) {
-	res, err := (*s.storage).GetURL(ctx, id)
+	res, err := s.storage.GetURL(ctx, id)
 	if err != nil {
 		return "null", err
 	}
 	return res, nil
 }
 func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) {
-
 	user := core.User{}
-	user.FromAny(ctx.Value(core.USERDATA))
+	err := user.SetUserIDFromContext(ctx)
+	if err != nil {
+		return "", err
+	}
 	l := core.Link{
 		Link: link,
 		UUID: user.ID,
 	}
-	res, err := (*s.storage).SetURL(ctx, &l)
+	res, err := s.storage.SetURL(ctx, &l)
 	log.Println("====USER ID", user.ID)
 
 	if err != nil && !errors.Is(err, core.NewErrConflict()) {
@@ -47,5 +49,5 @@ func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) 
 }
 
 func (s *BasicService) Ping(ctx context.Context) error {
-	return (*s.storage).Ping(ctx)
+	return s.storage.Ping(ctx)
 }

@@ -85,9 +85,6 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 	res := make([]*core.ResponseAPIShortenBatch, 0, 10)
 	resDB, err := s.storage.SetURLSBatch(ctx, links)
 
-	// if err != nil && !errors.Is(err, core.NewErrConflict()) {
-	// 	return nil, err
-	// }
 	for i, r := range resDB {
 		res = append(res, &core.ResponseAPIShortenBatch{
 			CorrelationID: request[i].CorrelationID,

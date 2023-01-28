@@ -26,11 +26,13 @@ func (s *ServiceMock) GetURL(ctx context.Context, id string) (string, error) {
 	switch id {
 	case "1":
 		{
-			return "http://example.com/link1", nil
+			url := "http://example.com/link1"
+			return url, nil
 		}
 	case "2":
 		{
-			return "http://example.com/link2", nil
+			url := "http://example.com/link2"
+			return url, nil
 		}
 	default:
 		{
@@ -42,11 +44,13 @@ func (s *ServiceMock) SetURL(ctx context.Context, link string) (string, error) {
 	switch link {
 	case "http://example.com/link1":
 		{
-			return "http://localhost:8080/" + "1", nil
+			url := "http://localhost:8080/" + "1"
+			return url, nil
 		}
 	case "http://example.com/link2":
 		{
-			return "http://localhost:8080/" + "2", nil
+			url := "http://localhost:8080/" + "2"
+			return url, nil
 		}
 	default:
 		{

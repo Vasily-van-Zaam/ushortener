@@ -21,6 +21,7 @@ type Link struct {
 	ShortLink string `db:"short_link" json:"short_link"`
 	UUID      string `db:"uuid" json:"uuid"`
 	UserID    int    `db:"user_id" json:"user_id"`
+	Deleted   bool   `db:"deleted" json:"deleted"`
 }
 
 type ErrConflict struct{}

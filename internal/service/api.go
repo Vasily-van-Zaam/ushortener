@@ -63,7 +63,6 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 				OriginalURL: r.Link,
 			})
 		}
-
 	}
 
 	return resAPI, err
@@ -93,4 +92,18 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 	}
 
 	return res, err
+}
+
+func (s *API) APIDeleteUserURLS(ctx context.Context, urls []*string) error {
+	user := core.User{}
+	err := user.SetUserIDFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = s.storage.DeleteURLSBatch(ctx, urls, user.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

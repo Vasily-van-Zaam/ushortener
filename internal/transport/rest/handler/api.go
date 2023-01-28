@@ -18,6 +18,8 @@ type APIService interface {
 		request []*core.RequestAPIShortenBatch,
 	) ([]*core.ResponseAPIShortenBatch, error)
 	APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error)
+	APIDeleteUserURLS(ctx context.Context, urls []*string) error
+
 	core.AUTHService
 }
 
@@ -126,6 +128,39 @@ func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Config.LogResponse(w, r, string(response), http.StatusOK)
+}
+
+// //////////////////////////////////////////////////////////////
+// TODO дописать инструкцию
+// @Tags         API
+// @Summary      Api Delete user urls
+// @Accept       plain
+// @Produce      plain
+// @Success		 202
+// @Failure      400  {string} 	"error"
+// @Router       /api/user/urls [delete].
+func (h *APIHandler) APIDeleteUserURLS(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		return
+	}
+	request := make([]*string, 0)
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.Service.APIDeleteUserURLS(r.Context(), request)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error delte urls: %s", err.Error()), http.StatusBadRequest)
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusAccepted)
 }
 
 // TODO дописать инструкциюы

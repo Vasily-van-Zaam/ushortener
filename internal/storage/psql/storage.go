@@ -36,6 +36,7 @@ func New(conf *core.Config) (*Store, error) {
 		link TEXT UNIQUE,
 		short_link char(255) UNIQUE,
 		user_id INTEGER,
+		deleted boolean,
 		FOREIGN KEY (user_id) REFERENCES users (id)
 	);`)
 
@@ -55,15 +56,19 @@ func New(conf *core.Config) (*Store, error) {
 
 func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	res := s.db.QueryRow(ctx, `
-	SELECT * FROM links WHERE id=$1;
+	SELECT id,uuid,link,deleted  FROM links WHERE id=$1;
 	`, id)
 	linkDB := core.Link{}
-	err := res.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UserID)
+	err := res.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.Deleted)
 	if err != nil {
 		log.Println("errorSelectSqlLiteGet", err, linkDB)
 	}
 
 	if linkDB.ID != 0 {
+		log.Println("?????????", linkDB, id)
+		if linkDB.Deleted {
+			return "", errors.New("deleted")
+		}
 		return linkDB.Link, nil
 	}
 	if id == "" {
@@ -86,7 +91,8 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	}
 
 	if linkDB.ID != 0 {
-		return fmt.Sprint(linkDB.ID), core.NewErrConflict()
+		url := fmt.Sprint(linkDB.ID)
+		return url, core.NewErrConflict()
 	}
 
 	tx, err := s.db.Begin(ctx)
@@ -113,8 +119,8 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	if errCommit != nil {
 		log.Println("errCommit:", errCommit)
 	}
-
-	return fmt.Sprint(resID), nil
+	url := fmt.Sprint(resID)
+	return url, nil
 }
 
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
@@ -184,6 +190,47 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 		return nil, errCommit
 	}
 	return response, errConflict
+}
+
+func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		errRllback := tx.Rollback(ctx)
+		if errRllback != nil {
+			log.Print("errRllback:", errRllback)
+		}
+	}()
+
+	listIds := ""
+	for i, id := range ids {
+		if i == len(ids)-1 {
+			listIds += *id
+		} else {
+			listIds += *id + ","
+		}
+	}
+
+	_, err = tx.Exec(ctx, `
+		update links
+		set deleted = false
+		where id in (`+listIds+`) and uuid = $1`,
+		userID,
+	)
+
+	if err != nil {
+		log.Println("errExec:", err)
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		log.Println("errCommit:", err)
+		return err
+	}
+	return nil
 }
 
 func (s *Store) Close() error {

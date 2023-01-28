@@ -76,7 +76,8 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 		log.Println(d, line)
 		if len(d) >= 1 {
 			if d[1] == link.Link {
-				return fmt.Sprint(d[0]), core.NewErrConflict()
+				url := fmt.Sprint(d[0])
+				return url, core.NewErrConflict()
 			}
 		}
 		lastElementID, _ = strconv.Atoi(d[0])
@@ -95,7 +96,8 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 		return "", err
 	}
 	defer data.file.Close()
-	return fmt.Sprint(lastElementID + 1), nil
+	url := fmt.Sprint(lastElementID + 1)
+	return url, nil
 }
 
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
@@ -193,6 +195,9 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 	return result, errConflict
 }
 
+func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	return nil
+}
 func (s *Store) Close() error {
 	return nil
 }

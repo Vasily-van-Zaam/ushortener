@@ -36,7 +36,8 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	for _, l := range s.Data {
 		if l.Link == link.Link {
-			return fmt.Sprint(l.ID), core.NewErrConflict()
+			url := fmt.Sprint(l.ID)
+			return url, core.NewErrConflict()
 		}
 	}
 	dataLength := len(s.Data) + 1
@@ -46,7 +47,8 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 		UUID: link.UUID,
 	}
 	s.Data = append(s.Data, &d)
-	return fmt.Sprint(d.ID), nil
+	url := fmt.Sprint(d.ID)
+	return url, nil
 }
 
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
@@ -89,5 +91,9 @@ func (s *Store) Close() error {
 	return nil
 }
 func (s *Store) Ping(ctx context.Context) error {
+	return nil
+}
+
+func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
 	return nil
 }

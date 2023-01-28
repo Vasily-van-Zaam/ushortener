@@ -69,7 +69,8 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	}
 
 	if linkDB.ID != 0 {
-		return fmt.Sprint(linkDB.ID), nil
+		url := fmt.Sprint(linkDB.ID)
+		return url, nil
 	}
 	res, err := s.db.ExecContext(ctx, `
 	INSERT INTO links (link, uuid) VALUES ($1, $2);
@@ -78,8 +79,8 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 		log.Println("errorInsertSqlLitePost", err)
 	}
 	resID, _ = res.LastInsertId()
-
-	return fmt.Sprint(resID), nil
+	url := fmt.Sprint(resID)
+	return url, nil
 }
 
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
@@ -106,6 +107,10 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
 	return nil, nil
+}
+
+func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	return nil
 }
 
 func (s *Store) Close() error {

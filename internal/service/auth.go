@@ -12,6 +12,7 @@ type Storage interface {
 	SetURL(ctx context.Context, link *core.Link) (string, error)
 	GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error)
 	SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error)
+	DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error
 	Ping(ctx context.Context) error
 	Close() error
 }

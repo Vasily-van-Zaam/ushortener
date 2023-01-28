@@ -32,5 +32,6 @@ func (h *Handlers) InitAPI(r *chi.Mux) {
 	// API
 	r.Post("/api/shorten", h.api.APISetShorten)
 	r.Get("/api/user/urls", h.api.APIGetUserURLS)
+	r.Delete("/api/user/urls", h.api.APIDeleteUserURLS)
 	r.Post("/api/shorten/batch", h.api.APISetShortenBatch)
 }

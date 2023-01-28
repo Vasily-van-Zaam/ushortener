@@ -24,8 +24,9 @@ func NewBasic(conf *core.Config, s *Storage, auth *AUTHService) *BasicService {
 
 func (s *BasicService) GetURL(ctx context.Context, id string) (string, error) {
 	res, err := s.storage.GetURL(ctx, id)
+	log.Println("==========", err)
 	if err != nil {
-		return "null", err
+		return "", err
 	}
 	return res, nil
 }
@@ -43,9 +44,10 @@ func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) 
 	log.Println("====USER ID", user.ID)
 
 	if err != nil && !errors.Is(err, core.NewErrConflict()) {
-		return "null", err
+		return "", err
 	}
-	return s.config.BaseURL + "/" + res, err
+	url := s.config.BaseURL + "/" + res
+	return url, err
 }
 
 func (s *BasicService) Ping(ctx context.Context) error {

@@ -55,7 +55,7 @@ func (a *Auth) generatCookie(w http.ResponseWriter, r *http.Request) *http.Reque
 		return r.WithContext(setContext(r, core.User{ID: id}))
 	}
 	for _, c := range cookie {
-		return r.WithContext(setContext(r, core.User{ID: "29b1680b-5816-4dd1-a07c-f63be36bf5de"}))
+		// return r.WithContext(setContext(r, core.User{ID: "29b1680b-5816-4dd1-a07c-f63be36bf5de"}))
 		if c.Name == string(core.USERDATA) {
 			var v []byte
 			byteID, err1 := hex.DecodeString(c.Value)

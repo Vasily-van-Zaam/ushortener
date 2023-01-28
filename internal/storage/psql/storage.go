@@ -215,7 +215,7 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 
 	_, err = tx.Exec(ctx, `
 		update links
-		set deleted = false
+		set deleted = ture
 		where id in (`+listIds+`) and uuid = $1`,
 		userID,
 	)

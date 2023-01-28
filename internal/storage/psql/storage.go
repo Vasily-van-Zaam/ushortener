@@ -80,12 +80,12 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	var resID any
 	searchLink := s.db.QueryRow(ctx, `
-	SELECT * FROM links WHERE link=$1;
+	SELECT id,uuid,link,user_id FROM links WHERE link=$1;
 	`, link.Link)
 
 	linkDB := core.Link{}
 
-	err := searchLink.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UserID)
+	err := searchLink.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.UserID)
 	if err != nil {
 		log.Println("errorSelectSqlLitePost", err, linkDB)
 	}

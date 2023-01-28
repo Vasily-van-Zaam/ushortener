@@ -101,13 +101,13 @@ func (s *API) APIDeleteUserURLS(ctx context.Context, urls []*string) error {
 		return err
 	}
 
-	// go func() {
-	// log.Println(user.ID)
-	err = s.storage.DeleteURLSBatch(ctx, urls, user.ID)
-	if err != nil {
-		return err
-	}
-	// }()
+	go func() {
+
+		err = s.storage.DeleteURLSBatch(ctx, urls, user.ID)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	return nil
 }

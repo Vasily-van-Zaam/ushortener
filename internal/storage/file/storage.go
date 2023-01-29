@@ -226,7 +226,7 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 	if err != nil {
 		return err
 	}
-	defer data.file.Close()
+
 	dataLines := ""
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
@@ -238,6 +238,7 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 		}
 		dataLines += fmt.Sprint(d[0], ",", d[1], ",", d[2], ",", exists, "\n")
 	}
+	data.file.Close()
 
 	err = os.WriteFile(s.Config.Filestore, []byte(dataLines), 0644)
 	if err != nil {

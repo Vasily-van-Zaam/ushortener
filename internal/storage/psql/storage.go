@@ -65,7 +65,6 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	}
 
 	if linkDB.ID != 0 {
-		log.Println("?????????", linkDB, id)
 		if linkDB.Deleted {
 			return "", errors.New("deleted")
 		}
@@ -142,7 +141,6 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 		}
 		res = append(res, linkDB)
 	}
-	// log.Println(query)
 	return res, nil
 }
 
@@ -193,10 +191,12 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 }
 
 func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	ctx = context.Background()
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return err
 	}
+
 	defer func() {
 		errRllback := tx.Rollback(ctx)
 		if errRllback != nil {
@@ -230,6 +230,7 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 		log.Println("errCommit:", err)
 		return err
 	}
+
 	return nil
 }
 

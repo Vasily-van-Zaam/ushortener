@@ -18,7 +18,7 @@ type APIService interface {
 		request []*core.RequestAPIShortenBatch,
 	) ([]*core.ResponseAPIShortenBatch, error)
 	APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error)
-	APIDeleteUserURLS(ctx context.Context, urls []*string) error
+	APIDeleteUserURLS(ctx context.Context, ids []*string) error
 
 	core.AUTHService
 }

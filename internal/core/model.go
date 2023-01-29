@@ -136,3 +136,9 @@ func (c *Config) LogRequest(w http.ResponseWriter, r *http.Request, body any) {
 		"# END LOG REQUEST #", "\n",
 	)
 }
+
+type BuferDeleteURL struct {
+	IDS  []*string
+	User *User
+	Ctx  context.Context
+}

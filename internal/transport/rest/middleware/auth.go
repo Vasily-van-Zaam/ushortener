@@ -65,7 +65,6 @@ func (a *Auth) generatCookie(w http.ResponseWriter, r *http.Request) *http.Reque
 				http.SetCookie(w, newCookie)
 				return r.WithContext(setContext(r, core.User{ID: id}))
 			}
-			log.Println(v)
 			return r.WithContext(setContext(r, core.User{ID: string(v)}))
 		}
 	}

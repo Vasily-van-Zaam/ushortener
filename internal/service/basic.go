@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
@@ -24,7 +23,6 @@ func NewBasic(conf *core.Config, s *Storage, auth *AUTHService) *BasicService {
 
 func (s *BasicService) GetURL(ctx context.Context, id string) (string, error) {
 	res, err := s.storage.GetURL(ctx, id)
-	log.Println("==========", err)
 	if err != nil {
 		return "", err
 	}
@@ -41,7 +39,6 @@ func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) 
 		UUID: user.ID,
 	}
 	res, err := s.storage.SetURL(ctx, &l)
-	log.Println("====USER ID", user.ID)
 
 	if err != nil && !errors.Is(err, core.NewErrConflict()) {
 		return "", err

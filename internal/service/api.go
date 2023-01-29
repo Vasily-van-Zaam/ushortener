@@ -5,9 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
+
+var BUF chan *core.BuferDeleteURL = make(chan *core.BuferDeleteURL, 1000)
 
 type API struct {
 	storage Storage
@@ -20,6 +23,23 @@ func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
 		*s,
 		conf,
 		auth,
+	}
+}
+func (s *API) BindBuferIds() {
+	defer s.BindBuferIds()
+	for b := range BUF {
+		wg := &sync.WaitGroup{}
+		buf := *b
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := s.storage.DeleteURLSBatch(buf.Ctx, buf.IDS, buf.User.ID)
+			if err != nil {
+				log.Println("DELETED ERROR", err)
+			}
+			log.Println("DELETED OK")
+		}()
+		wg.Wait()
 	}
 }
 
@@ -94,20 +114,16 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 	return res, err
 }
 
-func (s *API) APIDeleteUserURLS(ctx context.Context, urls []*string) error {
-	user := core.User{}
+func (s *API) APIDeleteUserURLS(ctx context.Context, ids []*string) error {
+	var user core.User
 	err := user.SetUserIDFromContext(ctx)
 	if err != nil {
 		return err
 	}
-
-	go func() {
-
-		err = s.storage.DeleteURLSBatch(ctx, urls, user.ID)
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
+	BUF <- &core.BuferDeleteURL{
+		User: &user,
+		Ctx:  ctx,
+		IDS:  ids,
+	}
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -49,7 +48,6 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	line := 0
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
-		log.Println(d, line)
 		if len(d) >= 1 {
 			if d[0] == id {
 				return d[1], nil
@@ -73,7 +71,6 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	lastElementID := 0
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
-		log.Println(d, line)
 		if len(d) >= 1 {
 			if d[1] == link.Link {
 				url := fmt.Sprint(d[0])
@@ -135,7 +132,6 @@ func scan(data *Event) []*core.Link {
 	lastElementID := 0
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
-		log.Println(d, line)
 		lastElementID, _ = strconv.Atoi(d[0])
 		if len(d) >= 1 {
 			res = append(res, &core.Link{

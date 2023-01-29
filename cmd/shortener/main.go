@@ -51,7 +51,9 @@ func main() {
 	defer storage.Close()
 	authService := service.NewAuth(&cfg, &storage)
 	basicService := service.NewBasic(&cfg, &storage, authService)
+
 	apiService := service.NewAPI(&cfg, &storage, authService)
+	go apiService.BindBuferIds()
 	middlewares := []rest.Middleware{
 		middleware.NewGzip(&cfg),
 		middleware.NewAuth(&cfg, authService),

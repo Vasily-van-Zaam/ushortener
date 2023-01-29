@@ -52,11 +52,16 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		// http.Error(w, err.Error(), http.StatusBadRequest)
-		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		if err.Error() == "deleted" {
-			http.Error(w, err.Error(), http.StatusGone)
+			w.WriteHeader(http.StatusGone)
+			h.Config.LogResponse(w, r, err.Error(), http.StatusGone)
+			_, errW := w.Write(nil)
+			if errW != nil {
+				log.Println(errW)
+			}
 			return
 		}
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

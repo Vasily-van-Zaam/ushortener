@@ -8,16 +8,28 @@ import (
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Store struct {
 	config *core.Config
-	db     *pgx.Conn
+	db     *pgxpool.Pool // *pgx.Conn
 }
 
 func New(conf *core.Config) (*Store, error) {
 	ctx := context.Background()
-	db, err := pgx.Connect(context.Background(), conf.DataBaseDNS)
+	
+	config, err := pgxpool.ParseConfig(conf.DataBaseDNS)
+	if err != nil {
+		panic(err)
+	}
+	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		// do something with every new connection
+		return nil
+	}
+
+	db, err := pgxpool.NewWithConfig(context.Background(), config)
+
 	if err != nil {
 		panic(err)
 	}
@@ -235,11 +247,12 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 }
 
 func (s *Store) Close() error {
-	return s.db.Close(context.Background())
+	s.db.Close()
+	return nil // s.db.Close(context.Background())
 }
 
 func (s *Store) Ping(ctx context.Context) error {
-	err := s.db.PgConn().CheckConn()
+	err := s.db.Ping(ctx) // PgConn().CheckConn()
 	if err != nil {
 		return err
 	}

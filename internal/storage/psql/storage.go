@@ -146,7 +146,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
 	var errConflict *core.ErrConflict
-	response := make([]*core.Link, 0, 10)
+	response := make([]*core.Link, 0)
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -159,12 +159,12 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 	}()
 
 	for _, l := range links {
-		searchLink := s.db.QueryRow(ctx, `
-			SELECT * FROM links WHERE link=$1;
+		searchLink := tx.QueryRow(ctx, `
+			SELECT id,uuid,link,user_id,deleted FROM links WHERE link=$1;
 		`, l.Link)
 
 		linkDB := core.Link{}
-		err = searchLink.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UserID)
+		err = searchLink.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.UserID, &linkDB.Deleted)
 		if err != nil {
 			log.Println("errorSelectSqlLitePost", err, linkDB)
 		}
@@ -173,7 +173,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 			response = append(response, &linkDB)
 		} else {
 			errInsert := tx.QueryRow(ctx, `
-				INSERT INTO links (link, uuid) VALUES ($1, $2) RETURNING id;
+				INSERT INTO links (link,uuid) VALUES ($1,$2) RETURNING id;
 			`, l.Link, l.UUID,
 			).Scan(&linkDB.ID)
 			if errInsert != nil {

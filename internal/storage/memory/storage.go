@@ -25,6 +25,9 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	for _, l := range s.Data {
 		idInt, _ := strconv.Atoi(id)
 		if l.ID == idInt {
+			if l.Deleted {
+				return "", errors.New("deleted")
+			}
 			return l.Link, nil
 		}
 	}
@@ -42,9 +45,10 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	}
 	dataLength := len(s.Data) + 1
 	d := core.Link{
-		ID:   dataLength,
-		Link: link.Link,
-		UUID: link.UUID,
+		ID:      dataLength,
+		Link:    link.Link,
+		UUID:    link.UUID,
+		Deleted: false,
 	}
 	s.Data = append(s.Data, &d)
 	url := fmt.Sprint(d.ID)
@@ -95,5 +99,17 @@ func (s *Store) Ping(ctx context.Context) error {
 }
 
 func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	for _, l := range s.Data {
+		for _, idStr := range ids {
+			id, _ := strconv.Atoi(*idStr)
+			if l.ID == id && l.UUID == userID {
+				l.Deleted = true
+			}
+		}
+	}
+	// for _, i := range s.Data {
+	// 	log.Println("DATA===>>>>>", *i)
+	// }
+
 	return nil
 }

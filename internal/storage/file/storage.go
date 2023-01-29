@@ -40,6 +40,18 @@ func (s *Store) newOpenFile() (*Event, error) {
 	}, nil
 }
 
+func (s *Store) newCreateFile() (*Event, error) {
+	file, err := os.Create(s.Config.Filestore)
+	if err != nil {
+		return nil, err
+	}
+	return &Event{
+		file:    file,
+		scanner: bufio.NewScanner(file),
+		writer:  bufio.NewWriter(file),
+	}, nil
+}
+
 func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	data, err := s.newOpenFile()
 	if err != nil {
@@ -80,7 +92,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 		lastElementID, _ = strconv.Atoi(d[0])
 		line++
 	}
-	_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UUID)))
+	_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UUID, ",", link.Deleted)))
 	if errWriteData != nil {
 		return "", errWriteData
 	}
@@ -109,10 +121,15 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 		if len(d) != 0 {
 			if d[2] == userID {
 				id, _ := strconv.Atoi(d[0])
+				deleted := false
+				if d[3] == "true" {
+					deleted = true
+				}
 				links = append(links, &core.Link{
-					ID:   id,
-					Link: d[1],
-					UUID: d[2],
+					ID:      id,
+					Link:    d[1],
+					UUID:    d[2],
+					Deleted: deleted,
 				})
 			}
 		}
@@ -133,11 +150,16 @@ func scan(data *Event) []*core.Link {
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
 		lastElementID, _ = strconv.Atoi(d[0])
+		deleted := false
+		if d[3] == "true" {
+			deleted = true
+		}
 		if len(d) >= 1 {
 			res = append(res, &core.Link{
-				ID:   lastElementID,
-				UUID: d[2],
-				Link: d[1],
+				ID:      lastElementID,
+				UUID:    d[2],
+				Link:    d[1],
+				Deleted: deleted,
 			})
 		}
 		line++
@@ -151,7 +173,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 		return nil, err
 	}
 	dataList := scan(data)
-	result := make([]*core.Link, 0, 10)
+	result := make([]*core.Link, 0)
 	count := 0
 	var errConflict *core.ErrConflict
 	for _, l := range links {
@@ -170,7 +192,8 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 			continue
 		}
 		count++
-		_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+count, ",", l.Link, ",", l.UUID)))
+		_, errWriteData :=
+			data.writer.Write([]byte(fmt.Sprint(lastElementID+count, ",", l.Link, ",", l.UUID, ",", l.Deleted)))
 		if errWriteData != nil {
 			return nil, errWriteData
 		}
@@ -183,9 +206,10 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 			return nil, err
 		}
 		result = append(result, &core.Link{
-			ID:   lastElementID + count,
-			Link: l.Link,
-			UUID: l.UUID,
+			ID:      lastElementID + count,
+			Link:    l.Link,
+			UUID:    l.UUID,
+			Deleted: false,
 		})
 	}
 	return result, errConflict

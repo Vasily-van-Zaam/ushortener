@@ -35,8 +35,9 @@ func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) 
 		return "", err
 	}
 	l := core.Link{
-		Link: link,
-		UUID: user.ID,
+		Link:    link,
+		UUID:    user.ID,
+		Deleted: false,
 	}
 	res, err := s.storage.SetURL(ctx, &l)
 

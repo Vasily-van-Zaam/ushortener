@@ -62,6 +62,9 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 		d := strings.Split(data.scanner.Text(), ",")
 		if len(d) >= 1 {
 			if d[0] == id {
+				if d[3] == "true" {
+					return "", errors.New("deleted")
+				}
 				return d[1], nil
 			}
 		}
@@ -114,6 +117,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	if err != nil {
 		return nil, err
 	}
+
 	links := make([]*core.Link, 0, 10)
 	line := 0
 	for data.scanner.Scan() {
@@ -172,6 +176,8 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 	if err != nil {
 		return nil, err
 	}
+	defer data.file.Close()
+
 	dataList := scan(data)
 	result := make([]*core.Link, 0)
 	count := 0
@@ -216,6 +222,27 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 }
 
 func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	data, err := s.newOpenFile()
+	if err != nil {
+		return err
+	}
+	defer data.file.Close()
+	dataLines := ""
+	for data.scanner.Scan() {
+		d := strings.Split(data.scanner.Text(), ",")
+		exists := false
+		for _, id := range ids {
+			if d[0] == *id && d[2] == userID {
+				exists = true
+			}
+		}
+		dataLines += fmt.Sprint(d[0], ",", d[1], ",", d[2], ",", exists, "\n")
+	}
+
+	err = os.WriteFile(s.Config.Filestore, []byte(dataLines), 0644)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 func (s *Store) Close() error {

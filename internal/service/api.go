@@ -26,7 +26,7 @@ func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
 	}
 }
 func (s *API) BindBuferIds() {
-	defer s.BindBuferIds()
+	// defer s.BindBuferIds()
 	for b := range BUF {
 		wg := &sync.WaitGroup{}
 		buf := *b

@@ -110,9 +110,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	}
 	s.Data = append(s.Data, &d)
 	url := fmt.Sprint(d.ID)
-	go func() {
-		s.saved <- nil
-	}()
+	s.saved <- nil
 	return url, nil
 }
 
@@ -149,9 +147,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 		}
 		result = append(result, l)
 	}
-	go func() {
-		s.saved <- nil
-	}()
+	s.saved <- nil
 	return result, errConflict
 }
 
@@ -206,9 +202,7 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 			}
 		}
 	}
-	go func() {
-		s.saved <- nil
-	}()
+	s.saved <- nil
 
 	return nil
 }

@@ -51,8 +51,8 @@ func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 		return nil, err
 	}
 	l := core.Link{
-		Link: request.URL,
-		UUID: user.ID,
+		Link:    request.URL,
+		UUID:    user.ID,
 		Deleted: false,
 	}
 	res, err := s.storage.SetURL(ctx, &l)
@@ -77,7 +77,6 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 
 	resAPI := make([]*core.ResponseAPIUserURL, 0, 10)
 	for _, r := range res {
-		log.Println(r)
 		if r != nil {
 			resAPI = append(resAPI, &core.ResponseAPIUserURL{
 				ShortURL:    fmt.Sprint(s.config.BaseURL, "/", r.ID),
@@ -98,8 +97,8 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 	links := make([]*core.Link, 0, 10)
 	for _, r := range request {
 		links = append(links, &core.Link{
-			UUID: user.ID,
-			Link: r.OriginalURL,
+			UUID:    user.ID,
+			Link:    r.OriginalURL,
 			Deleted: false,
 		})
 	}

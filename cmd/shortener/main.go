@@ -38,10 +38,12 @@ func main() {
 		}
 	case cfg.Filestore != "":
 		storage, err = filestore.New(&cfg)
+
 		log.Println("FILE STORE")
 		if err != nil {
 			log.Panicln(err)
 		}
+		go storage.Update()
 	default:
 		storage, err = memorystore.New(&cfg)
 		log.Println("MEMORY STORE")

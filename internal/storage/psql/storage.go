@@ -18,7 +18,7 @@ type Store struct {
 
 func New(conf *core.Config) (*Store, error) {
 	ctx := context.Background()
-	
+
 	config, err := pgxpool.ParseConfig(conf.DataBaseDNS)
 	if err != nil {
 		panic(err)
@@ -258,3 +258,5 @@ func (s *Store) Ping(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (s *Store) Update() {}

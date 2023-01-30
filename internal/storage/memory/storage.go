@@ -107,9 +107,7 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 			}
 		}
 	}
-	// for _, i := range s.Data {
-	// 	log.Println("DATA===>>>>>", *i)
-	// }
-
 	return nil
 }
+
+func (s *Store) Update() {}

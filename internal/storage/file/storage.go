@@ -5,9 +5,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
@@ -20,6 +22,7 @@ type Event struct {
 
 type Store struct {
 	Config *core.Config
+	mu     sync.RWMutex
 }
 
 func New(conf *core.Config) (*Store, error) {
@@ -40,115 +43,167 @@ func (s *Store) newOpenFile() (*Event, error) {
 	}, nil
 }
 
-func (s *Store) newCreateFile() (*Event, error) {
-	file, err := os.Create(s.Config.Filestore)
-	if err != nil {
-		return nil, err
-	}
-	return &Event{
-		file:    file,
-		scanner: bufio.NewScanner(file),
-		writer:  bufio.NewWriter(file),
-	}, nil
-}
-
 func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
-	data, err := s.newOpenFile()
-	if err != nil {
-		return "", err
-	}
-	line := 0
-	for data.scanner.Scan() {
-		d := strings.Split(data.scanner.Text(), ",")
-		if len(d) >= 1 {
-			if d[0] == id {
-				if d[3] == "true" {
-					return "", errors.New("deleted")
-				}
-				return d[1], nil
-			}
-		}
-		line++
-	}
-	defer data.file.Close()
-
+	resultOk := make(chan *string)
+	resultError := make(chan *error)
 	if id == "" {
 		return "", errors.New("not Found")
 	}
-	return "", nil
-}
-func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
-	data, err := s.newOpenFile()
-	if err != nil {
-		return "", err
-	}
-	line := 0
-	lastElementID := 0
-	for data.scanner.Scan() {
-		d := strings.Split(data.scanner.Text(), ",")
-		if len(d) >= 1 {
-			if d[1] == link.Link {
-				url := fmt.Sprint(d[0])
-				return url, core.NewErrConflict()
-			}
+	go func() {
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+
+		data, err := s.newOpenFile()
+		if err != nil {
+			resultError <- &err
+			return
 		}
-		lastElementID, _ = strconv.Atoi(d[0])
-		line++
+		defer data.file.Close()
+		line := 0
+		for data.scanner.Scan() {
+			d := strings.Split(data.scanner.Text(), ",")
+			if len(d) >= 1 {
+				if d[0] == id {
+					if d[3] == "true" {
+						err := errors.New("deleted")
+						resultError <- &err
+						return
+					}
+					resultOk <- &d[1]
+					return
+				}
+			}
+			line++
+		}
+	}()
+
+	select {
+	case res := <-resultOk:
+		return *res, nil
+	case err := <-resultError:
+		return "", *err
 	}
-	_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UUID, ",", link.Deleted)))
-	if errWriteData != nil {
-		return "", errWriteData
+}
+
+type OkErr struct {
+	res string
+	err error
+}
+
+func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
+	resultOk := make(chan *string)
+	resultError := make(chan *error)
+	resConflick := make(chan *OkErr)
+
+	go func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+
+		data, err := s.newOpenFile()
+		if err != nil {
+			resultError <- &err
+			return
+		}
+		line := 0
+		lastElementID := 0
+		for data.scanner.Scan() {
+			d := strings.Split(data.scanner.Text(), ",")
+			if len(d) >= 1 {
+				if d[1] == link.Link {
+					url := fmt.Sprint(d[0])
+					resConflick <- &OkErr{url, core.NewErrConflict()}
+					return
+				}
+			}
+			lastElementID, _ = strconv.Atoi(d[0])
+			line++
+		}
+		_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UUID, ",", link.Deleted)))
+		if errWriteData != nil {
+			resultError <- &errWriteData
+			return
+		}
+		errWriteByte := data.writer.WriteByte('\n')
+		if errWriteByte != nil {
+			resultError <- &errWriteByte
+			return
+		}
+		err = data.writer.Flush()
+		if err != nil {
+			resultError <- &err
+			return
+		}
+		defer data.file.Close()
+		url := fmt.Sprint(lastElementID + 1)
+		resultOk <- &url
+		return
+	}()
+
+	select {
+	case res := <-resultOk:
+		return *res, nil
+	case err := <-resultError:
+		return "", *err
+	case conflict := <-resConflick:
+		return conflict.res, conflict.err
 	}
-	errWriteByte := data.writer.WriteByte('\n')
-	if errWriteByte != nil {
-		return "", errWriteByte
-	}
-	err = data.writer.Flush()
-	if err != nil {
-		return "", err
-	}
-	defer data.file.Close()
-	url := fmt.Sprint(lastElementID + 1)
-	return url, nil
 }
 
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
-	data, err := s.newOpenFile()
-	if err != nil {
-		return nil, err
-	}
+	resultOk := make(chan []*core.Link)
+	resultError := make(chan *error)
 
-	links := make([]*core.Link, 0, 10)
-	line := 0
-	for data.scanner.Scan() {
-		d := strings.Split(data.scanner.Text(), ",")
-		if len(d) != 0 {
-			if d[2] == userID {
-				id, _ := strconv.Atoi(d[0])
-				deleted := false
-				if d[3] == "true" {
-					deleted = true
-				}
-				links = append(links, &core.Link{
-					ID:      id,
-					Link:    d[1],
-					UUID:    d[2],
-					Deleted: deleted,
-				})
-			}
+	go func() {
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+
+		data, err := s.newOpenFile()
+		if err != nil {
+			resultError <- &err
+			return
 		}
-		line++
-	}
-	defer data.file.Close()
+		defer data.file.Close()
+		links := make([]*core.Link, 0, 10)
+		line := 0
+		for data.scanner.Scan() {
+			d := strings.Split(data.scanner.Text(), ",")
+			if len(d) != 0 {
+				if d[2] == userID {
+					id, _ := strconv.Atoi(d[0])
+					deleted := false
+					if d[3] == "true" {
+						deleted = true
+					}
+					links = append(links, &core.Link{
+						ID:      id,
+						Link:    d[1],
+						UUID:    d[2],
+						Deleted: deleted,
+					})
+				}
+			}
+			line++
+		}
 
-	if userID == "" {
-		return nil, errors.New("not Found")
+		if userID == "" {
+			err := errors.New("not Found")
+			resultError <- &err
+			return
+		}
+		resultOk <- links
+		return
+	}()
+
+	select {
+	case res := <-resultOk:
+		return res, nil
+	case err := <-resultError:
+		return nil, *err
 	}
-	return links, nil
 }
 
 func scan(data *Event) []*core.Link {
-	res := make([]*core.Link, 0, 10)
+	res := make([]*core.Link, 0)
 	line := 0
 	lastElementID := 0
 	for data.scanner.Scan() {
@@ -171,80 +226,124 @@ func scan(data *Event) []*core.Link {
 	return res
 }
 
+type OkConflictLin struct {
+	links []*core.Link
+	err   error
+}
+
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
-	data, err := s.newOpenFile()
-	if err != nil {
-		return nil, err
-	}
-	defer data.file.Close()
+	resultError := make(chan *error)
+	resOkConflict := make(chan *OkConflictLin)
 
-	dataList := scan(data)
-	result := make([]*core.Link, 0)
-	count := 0
-	var errConflict *core.ErrConflict
-	for _, l := range links {
-		exists := false
-		lastElementID := 0
-		for _, ls := range dataList {
-			if ls.Link == l.Link {
-				exists = true
-				result = append(result, ls)
-			}
-			lastElementID = ls.ID
-		}
-
-		if exists {
-			errConflict = core.NewErrConflict()
-			continue
-		}
-		count++
-		_, errWriteData :=
-			data.writer.Write([]byte(fmt.Sprint(lastElementID+count, ",", l.Link, ",", l.UUID, ",", l.Deleted)))
-		if errWriteData != nil {
-			return nil, errWriteData
-		}
-		errWriteByte := data.writer.WriteByte('\n')
-		if errWriteByte != nil {
-			return nil, errWriteByte
-		}
-		err = data.writer.Flush()
+	go func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		data, err := s.newOpenFile()
 		if err != nil {
-			return nil, err
+			resultError <- &err
+			return
 		}
-		result = append(result, &core.Link{
-			ID:      lastElementID + count,
-			Link:    l.Link,
-			UUID:    l.UUID,
-			Deleted: false,
-		})
+		defer data.file.Close()
+
+		dataList := scan(data)
+		result := make([]*core.Link, 0)
+		count := 0
+		var errConflict *core.ErrConflict
+		for _, l := range links {
+			exists := false
+			lastElementID := 0
+			for _, ls := range dataList {
+				if ls.Link == l.Link {
+					exists = true
+					result = append(result, ls)
+				}
+				lastElementID = ls.ID
+			}
+
+			if exists {
+				errConflict = core.NewErrConflict()
+				continue
+			}
+			count++
+			_, errWriteData :=
+				data.writer.Write([]byte(fmt.Sprint(lastElementID+count, ",", l.Link, ",", l.UUID, ",", l.Deleted)))
+			if errWriteData != nil {
+				resultError <- &errWriteData
+				return
+			}
+			errWriteByte := data.writer.WriteByte('\n')
+			if errWriteByte != nil {
+				resultError <- &errWriteByte
+				return
+			}
+			err = data.writer.Flush()
+			if err != nil {
+				resultError <- &err
+				return
+			}
+			result = append(result, &core.Link{
+				ID:      lastElementID + count,
+				Link:    l.Link,
+				UUID:    l.UUID,
+				Deleted: false,
+			})
+		}
+		resOkConflict <- &OkConflictLin{
+			links: result,
+			err:   errConflict,
+		}
+		return
+	}()
+
+	select {
+	case ok := <-resOkConflict:
+		return ok.links, ok.err
+	case err := <-resultError:
+		return nil, *err
 	}
-	return result, errConflict
 }
 
 func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
-	data, err := s.newOpenFile()
-	if err != nil {
-		return err
-	}
+	resultOk := make(chan any)
+	resultError := make(chan *error)
 
-	dataLines := ""
-	for data.scanner.Scan() {
-		d := strings.Split(data.scanner.Text(), ",")
-		exists := false
-		for _, id := range ids {
-			if d[0] == *id && d[2] == userID {
-				exists = true
-			}
+	go func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		data, err := s.newOpenFile()
+		if err != nil {
+			resultError <- &err
+			return
 		}
-		dataLines += fmt.Sprint(d[0], ",", d[1], ",", d[2], ",", exists, "\n")
-	}
-	data.file.Close()
 
-	err = os.WriteFile(s.Config.Filestore, []byte(dataLines), 0644)
-	if err != nil {
-		return err
+		dataLines := ""
+		for data.scanner.Scan() {
+			d := strings.Split(data.scanner.Text(), ",")
+			exists := false
+			for _, id := range ids {
+				if d[0] == *id && d[2] == userID {
+					exists = true
+				}
+			}
+			dataLines += fmt.Sprint(d[0], ",", d[1], ",", d[2], ",", exists, "\n")
+		}
+		data.file.Close()
+		err = os.WriteFile(s.Config.Filestore, []byte(dataLines), 0644)
+		if err != nil {
+			resultError <- &err
+			return
+		}
+		resultOk <- nil
+		return
+	}()
+
+	select {
+	case ok := <-resultOk:
+		log.Println(ok)
+		return nil
+	case err := <-resultError:
+		return *err		
 	}
-	return nil
 }
 func (s *Store) Close() error {
 	return nil

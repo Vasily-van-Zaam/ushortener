@@ -9,45 +9,105 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
-type Memorystore struct {
+type Store struct {
 	Config *core.Config
 	Data   []*core.Link
 }
 
-func New(conf *core.Config) (*Memorystore, error) {
-	return &Memorystore{
+func New(conf *core.Config) (*Store, error) {
+	return &Store{
 		Config: conf,
-		Data:   []*core.Link{},
+		Data:   make([]*core.Link, 0),
 	}, nil
 }
 
-func (s *Memorystore) GetURL(ctx context.Context, id string) (string, error) {
+func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	for _, l := range s.Data {
 		idInt, _ := strconv.Atoi(id)
 		if l.ID == idInt {
+			if l.Deleted {
+				return "", errors.New("deleted")
+			}
 			return l.Link, nil
 		}
 	}
 	if id == "" {
 		return "", errors.New("not Found")
 	}
-	return s.Config.BaseURL, nil
+	return "", nil
 }
-func (s *Memorystore) SetURL(ctx context.Context, link string) (string, error) {
+func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	for _, l := range s.Data {
-		if l.Link == link {
-			return fmt.Sprint(s.Config.BaseURL, "/", l.ID), nil
+		if l.Link == link.Link {
+			url := fmt.Sprint(l.ID)
+			return url, core.NewErrConflict()
 		}
 	}
 	dataLength := len(s.Data) + 1
 	d := core.Link{
-		ID:   dataLength,
-		Link: link,
+		ID:      dataLength,
+		Link:    link.Link,
+		UUID:    link.UUID,
+		Deleted: false,
 	}
 	s.Data = append(s.Data, &d)
-	return fmt.Sprint(s.Config.BaseURL, "/", d.ID), nil
+	url := fmt.Sprint(d.ID)
+	return url, nil
 }
 
-func (s *Memorystore) Close() error {
+func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
+	links := make([]*core.Link, 0, 10)
+	for _, l := range s.Data {
+		if l.UUID == userID {
+			links = append(links, l)
+		}
+	}
+	if userID == "" {
+		return nil, errors.New("not Found")
+	}
+	return links, nil
+}
+
+func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
+	result := make([]*core.Link, 0, 10)
+	var errConflict *core.ErrConflict
+	for _, l := range links {
+		id := len(s.Data) + 1
+		exists := false
+		for _, ls := range s.Data {
+			if ls.Link == l.Link {
+				l.ID = ls.ID
+				exists = true
+				errConflict = core.NewErrConflict()
+				break
+			}
+		}
+		if !exists {
+			l.ID = id
+			s.Data = append(s.Data, l)
+		}
+		result = append(result, l)
+	}
+
+	return result, errConflict
+}
+func (s *Store) Close() error {
 	return nil
 }
+func (s *Store) Ping(ctx context.Context) error {
+	return nil
+}
+
+func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	for _, l := range s.Data {
+		for _, idStr := range ids {
+			id, _ := strconv.Atoi(*idStr)
+			if l.ID == id && l.UUID == userID {
+				l.Deleted = true
+			}
+		}
+	}
+	return nil
+}
+
+func (s *Store) Update() {}

@@ -5,7 +5,6 @@ import "log"
 var list []int64
 
 func Convert62(id int64) []int64 {
-
 	symbols := []string{
 		"_", "1", "2", "3", "4", "5", "6", "7", "8", "9",
 		"a", "A", "b", "B", "c", "C", "d", "D", "e", "E",

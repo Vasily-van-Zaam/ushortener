@@ -17,6 +17,7 @@ cmd/shortener/shortener
 cmd/shortener/store
 # Dependency directories (remove the comment below to include it)
 vendor/
+store
 
 # IDEs directories
 
@@ -25,3 +26,5 @@ vendor/
 store_shortener.db
 .DS_Store
 cmd/shortener/store_shortener.db
+cmd/shortener/__debug_bin
+_data

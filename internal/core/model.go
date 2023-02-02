@@ -1,18 +1,50 @@
 package core
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"log"
 	"net/http"
 )
 
-const MAINDOMAIN = "http://localhost:8080/"
+type UserData string
+
+const (
+	USERDATA UserData = "user_data"
+)
 
 type Link struct {
 	ID        int    `db:"id" json:"id"`
 	Link      string `db:"link" json:"link"`
 	ShortLink string `db:"short_link" json:"short_link"`
+	UUID      string `db:"uuid" json:"uuid"`
+	UserID    int    `db:"user_id" json:"user_id"`
+	Deleted   bool   `db:"deleted" json:"deleted"`
+}
+
+type ErrConflict struct{}
+
+func (e *ErrConflict) Error() string {
+	return "conflict"
+}
+
+func NewErrConflict() *ErrConflict {
+	return &ErrConflict{}
+}
+
+type User struct {
+	ID string `db:"id" json:"id"`
+}
+
+func (u *User) SetUserIDFromContext(ctx context.Context) error {
+	v, ok := ctx.Value(USERDATA).(User)
+	if !ok {
+		return errors.New("ERROR COOCIES")
+	}
+	u.ID = v.ID
+	return nil
 }
 
 type RequestAPIShorten struct {
@@ -23,12 +55,29 @@ type ResponseAPIShorten struct {
 	Result string `json:"result"`
 }
 
+type ResponseAPIUserURL struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+}
+
+type RequestAPIShortenBatch struct {
+	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url"`
+}
+type ResponseAPIShortenBatch struct {
+	CorrelationID string `json:"correlation_id"`
+	ShortURL      string `json:"short_url"`
+}
+
 type Config struct {
-	ServerAddress string `env:"SERVER_ADDRESS"`
-	BaseURL       string `env:"BASE_URL"`
-	Filestore     string `env:"FILE_STORAGE_PATH"`
-	SqliteDB      string `env:"SQLITE_DB"`
-	ServerTimeout int64  `env:"SERVER_TIMEOUT" envDefault:"100"`
+	ServerAddress    string `env:"SERVER_ADDRESS"`
+	BaseURL          string `env:"BASE_URL"`
+	Filestore        string `env:"FILE_STORAGE_PATH"`
+	SqliteDB         string `env:"SQLITE_DB"`
+	ServerTimeout    int64  `env:"SERVER_TIMEOUT" envDefault:"100"`
+	ExpiresDayCookie int64  `env:"EXPIRES_DAY_COOKIE" envDefault:"365"`
+	SecretKey        string `env:"SECRET_KEY" envDefault:"secretkey"`
+	DataBaseDNS      string `env:"DATABASE_DSN"`
 }
 
 func (c *Config) SetDefault() {
@@ -47,6 +96,11 @@ func (c *Config) SetDefault() {
 		flag.StringVar(&c.Filestore, "f", "./store", "path to file ./store.csv")
 	} else {
 		flag.StringVar(&emptyVar, "f", "./store", "path to file ./store.csv or other")
+	}
+	if c.DataBaseDNS == "" {
+		flag.StringVar(&c.DataBaseDNS, "d", "", "path DB")
+	} else {
+		flag.StringVar(&emptyVar, "d", "", "path DB")
 	}
 
 	flag.Parse()
@@ -81,4 +135,10 @@ func (c *Config) LogRequest(w http.ResponseWriter, r *http.Request, body any) {
 		"CONFIG: ", string(configByte), "\n",
 		"# END LOG REQUEST #", "\n",
 	)
+}
+
+type BuferDeleteURL struct {
+	IDS  []*string
+	User *User
+	Ctx  context.Context
 }

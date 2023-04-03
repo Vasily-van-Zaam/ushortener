@@ -13,9 +13,9 @@ type BasicService struct {
 	core.AUTHService
 }
 
-func NewBasic(conf *core.Config, s *Storage, auth *AUTHService) *BasicService {
+func NewBasic(conf *core.Config, s Storage, auth *AUTHService) *BasicService {
 	return &BasicService{
-		*s,
+		s,
 		conf,
 		auth,
 	}

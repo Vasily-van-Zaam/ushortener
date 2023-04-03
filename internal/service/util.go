@@ -18,9 +18,9 @@ func Convert62(id int64) []int64 {
 	list = append(list, al)
 	next := id - int64(l)
 	log.Println(al, next, l)
-	if  next >= 0{
+	if next >= 0 {
 		Convert62(next + 1)
 	}
-	
+
 	return list
 }

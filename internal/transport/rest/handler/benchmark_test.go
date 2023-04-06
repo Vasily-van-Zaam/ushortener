@@ -66,7 +66,7 @@ func BenchmarkSetAdd1000Urls(b *testing.B) {
 	}
 	h := handler.NewBasic(basicService, conf)
 
-	newURL := userDomain + uuid.New().String() + "/" + uuid.New().String()
+	// newURL := userDomain + uuid.New().String() + "/" + uuid.New().String()
 
 	urls := make([]string, countURL)
 	for i := range urls {
@@ -78,14 +78,14 @@ func BenchmarkSetAdd1000Urls(b *testing.B) {
 
 	b.ResetTimer()
 
-	for _ = range urls {
+	for _, url := range urls {
 		b.StopTimer()
 		a := args{
 			w: httptest.NewRecorder(),
 			r: httptest.NewRequest(
 				http.MethodPost,
 				"/",
-				strings.NewReader(newURL),
+				strings.NewReader(url),
 			),
 		}
 		b.StartTimer()

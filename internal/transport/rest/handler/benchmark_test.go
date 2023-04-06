@@ -18,7 +18,7 @@ import (
 type MockBencnmarkBasicService struct {
 	data    map[string]string
 	mu      sync.RWMutex
-	baseUrl string
+	baseURL string
 }
 
 func NewMockBencnmarkBasicService() *MockBencnmarkBasicService {
@@ -26,16 +26,14 @@ func NewMockBencnmarkBasicService() *MockBencnmarkBasicService {
 	return &MockBencnmarkBasicService{
 		data:    data,
 		mu:      sync.RWMutex{},
-		baseUrl: "http://site.ru/",
+		baseURL: "http://site.ru/",
 	}
 }
-func (s *MockBencnmarkBasicService) CreateUser() {
-
-}
+func (m *MockBencnmarkBasicService) CreateUser() {}
 
 func (m *MockBencnmarkBasicService) GetURL(ctx context.Context, link string) (string, error) {
 	m.mu.RLock()
-	id := strings.ReplaceAll(link, m.baseUrl, "")
+	id := strings.ReplaceAll(link, m.baseURL, "")
 	resp := m.data[id]
 	m.mu.RUnlock()
 	if resp == "" {
@@ -48,7 +46,7 @@ func (m *MockBencnmarkBasicService) SetURL(ctx context.Context, link string) (st
 	id := uuid.New().String()
 	m.data[id] = link
 	m.mu.Unlock()
-	return m.baseUrl + id, nil
+	return m.baseURL + id, nil
 }
 func (m *MockBencnmarkBasicService) Ping(ctx context.Context) error {
 	return nil
@@ -64,7 +62,7 @@ func BenchmarkSetAdd1000Urls(b *testing.B) {
 	basicService := NewMockBencnmarkBasicService()
 	conf := &core.Config{
 		ServerAddress: "http://localhost:8080",
-		BaseURL:       basicService.baseUrl,
+		BaseURL:       basicService.baseURL,
 	}
 	h := handler.NewBasic(basicService, conf)
 

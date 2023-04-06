@@ -5,6 +5,9 @@ import (
 
 	"github.com/caarlos0/env/v6"
 
+	"net/http"
+	_ "net/http/pprof"
+
 	"github.com/Vasily-van-Zaam/ushortener/docs"
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/Vasily-van-Zaam/ushortener/internal/service"
@@ -71,8 +74,7 @@ func main() {
 		log.Println("routerError:", routerError)
 	}
 
-	errorServer := server.Run(cfg.ServerAddress)
-	if errorServer != nil {
-		log.Println("errorServer:", errorServer)
-	}
+	go server.Run(cfg.ServerAddress)
+
+	log.Fatal(http.ListenAndServe(":8888", nil))
 }

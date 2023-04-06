@@ -1,3 +1,4 @@
+// Основной обработчик API методов
 package handler
 
 import (
@@ -13,8 +14,12 @@ import (
 )
 
 type APIService interface {
-	APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
-	APISetShortenBatch(ctx context.Context,
+	APISetShorten(
+		ctx context.Context,
+		request *core.RequestAPIShorten,
+	) (*core.ResponseAPIShorten, error)
+	APISetShortenBatch(
+		ctx context.Context,
 		request []*core.RequestAPIShortenBatch,
 	) ([]*core.ResponseAPIShortenBatch, error)
 	APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error)

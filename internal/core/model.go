@@ -38,8 +38,9 @@ type User struct {
 	ID string `db:"id" json:"id"`
 }
 
-func (u *User) SetUserIDFromContext(ctx context.Context) error {
-	v, ok := ctx.Value(USERDATA).(User)
+func (u *User) SetUserIDFromContext(ctx any) error {
+	conx, _ := ctx.(context.Context)
+	v, ok := conx.Value(USERDATA).(User)
 	if !ok {
 		return errors.New("ERROR COOCIES")
 	}
@@ -140,5 +141,5 @@ func (c *Config) LogRequest(w http.ResponseWriter, r *http.Request, body any) {
 type BuferDeleteURL struct {
 	IDS  []*string
 	User *User
-	Ctx  context.Context
+	Ctx  any
 }

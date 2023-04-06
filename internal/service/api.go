@@ -33,7 +33,8 @@ func (s *API) BindBuferIds() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err := s.storage.DeleteURLSBatch(buf.Ctx, buf.IDS, buf.User.ID)
+			ctx, _ := buf.Ctx.(context.Context)
+			err := s.storage.DeleteURLSBatch(ctx, buf.IDS, buf.User.ID)
 			if err != nil {
 				log.Println("DELETED ERROR", err)
 			}

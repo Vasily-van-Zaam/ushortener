@@ -15,31 +15,35 @@ import (
 	"github.com/google/uuid"
 )
 
-type Auth struct {
-	Config  *core.Config
-	service core.AUTHService
-	cripto  *Cripto
+type Auth interface {
+	Handle(next http.Handler) http.Handler
 }
 
-func NewAuth(conf *core.Config, service core.AUTHService) *Auth {
+type auth struct {
+	Config  *core.Config
+	service core.AUTHService
+	cripto  cripter
+}
+
+func NewAuth(conf *core.Config, service core.AUTHService) Auth {
 	c, err := NewCripto([]byte(conf.SecretKey))
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &Auth{
+	return &auth{
 		Config:  conf,
 		service: service,
 		cripto:  c,
 	}
 }
-func (a *Auth) Handle(next http.Handler) http.Handler {
+func (a *auth) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		newReq := a.generatCookie(w, r)
 		next.ServeHTTP(w, newReq)
 	})
 }
 
-func (a *Auth) generatCookie(w http.ResponseWriter, r *http.Request) *http.Request {
+func (a *auth) generatCookie(w http.ResponseWriter, r *http.Request) *http.Request {
 	cookie := r.Cookies()
 	id := uuid.New().String()
 	criptID := a.cripto.Encript([]byte(id))
@@ -80,12 +84,16 @@ func setContext(r *http.Request, user core.User) context.Context {
 	)
 }
 
-type Cripto struct {
+type cripter interface {
+	Encript(src []byte) []byte
+	Dencript(dst []byte) ([]byte, error)
+}
+type cripto struct {
 	nonce  *[]byte
 	aesgcm *cipher.AEAD
 }
 
-func NewCripto(key []byte) (*Cripto, error) {
+func NewCripto(key []byte) (cripter, error) {
 	h := sha256.New()
 	h.Write(key)
 	k := h.Sum(nil)
@@ -103,14 +111,14 @@ func NewCripto(key []byte) (*Cripto, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Cripto{nonce: &nonce, aesgcm: &aesgcm}, nil
+	return &cripto{nonce: &nonce, aesgcm: &aesgcm}, nil
 }
 
-func (e *Cripto) Encript(src []byte) []byte {
+func (e *cripto) Encript(src []byte) []byte {
 	dst := (*e.aesgcm).Seal(nil, *e.nonce, src, nil)
 	return dst
 }
-func (e *Cripto) Dencript(dst []byte) ([]byte, error) {
+func (e *cripto) Dencript(dst []byte) ([]byte, error) {
 	res, err := (*e.aesgcm).Open(nil, *e.nonce, dst, nil) // расшифровываем
 	if err != nil {
 		return nil, err

@@ -9,10 +9,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type middleware interface {
-	Handle(next http.Handler) http.Handler
-}
-
 type router interface {
 	Run(string) error
 }
@@ -23,9 +19,6 @@ type server struct {
 }
 
 func New(conf *core.Config, h *chi.Mux) (router, error) {
-	// h.Use(setMiddlewareFuncList(mws)...)
-
-	// h.InitAPI(r)
 	return &server{
 		router: h,
 		config: conf,
@@ -41,11 +34,3 @@ func (s *server) Run(addresPort string) error {
 	}
 	return server.ListenAndServe()
 }
-
-// func setMiddlewareFuncList(m []middleware) []func(http.Handler) http.Handler {
-// 	middlewares := []func(http.Handler) http.Handler{}
-// 	for _, m := range m {
-// 		middlewares = append(middlewares, m.Handle)
-// 	}
-// 	return middlewares
-// }

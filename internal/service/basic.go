@@ -21,6 +21,7 @@ func NewBasic(conf *core.Config, s *Storage, auth *AUTHService) *BasicService {
 	}
 }
 
+// Get URL, response user url.
 func (s *BasicService) GetURL(ctx context.Context, id string) (string, error) {
 	res, err := s.storage.GetURL(ctx, id)
 	if err != nil {
@@ -45,7 +46,7 @@ func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) 
 		return "", err
 	}
 	url := s.config.BaseURL + "/" + res
-	return url, err
+	return url, nil
 }
 
 func (s *BasicService) Ping(ctx context.Context) error {

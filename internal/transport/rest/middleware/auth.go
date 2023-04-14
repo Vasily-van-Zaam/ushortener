@@ -107,7 +107,7 @@ func NewCripto(key []byte) (cripter, error) {
 		return nil, err
 	}
 
-	nonce, err := generateRandom(aesgcm.NonceSize())
+	nonce, err := GenerateRandom(aesgcm.NonceSize())
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (e *cripto) Dencript(dst []byte) ([]byte, error) {
 	return res, nil
 }
 
-func generateRandom(size int) ([]byte, error) {
+func GenerateRandom(size int) ([]byte, error) {
 	b := make([]byte, size)
 	_, err := rand.Read(b)
 	if err != nil {

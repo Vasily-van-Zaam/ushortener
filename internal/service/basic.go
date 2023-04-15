@@ -46,7 +46,7 @@ func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) 
 		return "", err
 	}
 	url := s.config.BaseURL + "/" + res
-	return url, nil
+	return url, err
 }
 
 func (s *BasicService) Ping(ctx context.Context) error {

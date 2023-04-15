@@ -61,7 +61,7 @@ func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 	}
 	return &core.ResponseAPIShorten{
 		Result: s.config.BaseURL + "/" + res,
-	}, nil
+	}, err
 }
 
 func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error) {
@@ -85,7 +85,7 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 		}
 	}
 
-	return resAPI, nil
+	return resAPI, err
 }
 
 func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPIShortenBatch) ([]*core.ResponseAPIShortenBatch, error) {
@@ -112,7 +112,7 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 		})
 	}
 
-	return res, nil
+	return res, err
 }
 
 func (s *API) APIDeleteUserURLS(ctx context.Context, ids []*string) error {

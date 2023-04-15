@@ -203,7 +203,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 }
 
 func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
-	ctx = context.Background()
+	// ctx = context.Background()
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return err

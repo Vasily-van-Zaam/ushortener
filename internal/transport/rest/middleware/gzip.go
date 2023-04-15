@@ -11,27 +11,27 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
-type Gzip struct {
+type zip struct {
 	Config *core.Config
 }
 
-func NewGzip(conf *core.Config) *Gzip {
-	return &Gzip{
+func NewGzip(conf *core.Config) *zip {
+	return &zip{
 		Config: conf,
 	}
 }
 
-type GzipResponseWriter struct {
+type gzipResponseWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
 }
 
-func (w GzipResponseWriter) Write(b []byte) (int, error) {
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
 	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него
 	return w.Writer.Write(b)
 }
 
-func (g *Gzip) Handle(next http.Handler) http.Handler {
+func (g *zip) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var bodyBytes []byte
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
@@ -63,7 +63,7 @@ func (g *Gzip) Handle(next http.Handler) http.Handler {
 
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
-		gzr := GzipResponseWriter{Writer: gz, ResponseWriter: w}
+		gzr := gzipResponseWriter{Writer: gz, ResponseWriter: w}
 
 		g.Config.LogRequest(w, r, string(bodyBytes))
 		next.ServeHTTP(gzr, r)

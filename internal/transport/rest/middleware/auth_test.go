@@ -1,77 +1,85 @@
-package middleware
+package middleware_test
 
 import (
-	"crypto/cipher"
-	"encoding/hex"
-	"log"
-	"net/http"
 	"reflect"
 	"testing"
 
-	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/middleware"
 )
 
-func TestAuth_Handle(t *testing.T) {
-	type fields struct {
-		Config *core.Config
-	}
+func Test_generateRandom(t *testing.T) {
 	type args struct {
-		next http.Handler
+		size int
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   http.Handler
+		name    string
+		args    args
+		want    []byte
+		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Generate random",
+			args: args{
+				size: 256,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := &Auth{
-				Config: tt.fields.Config,
+			got, err := middleware.GenerateRandom(tt.args.size)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("generateRandom() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-			if got := a.Handle(tt.args.next); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Auth.Handle() = %v, want %v", got, tt.want)
+			if len(got) != 256 {
+				t.Errorf("generateRandom() length = %v, want %v", len(got), tt.args.size)
 			}
 		})
 	}
 }
 
-func TestCripto_Encript(t *testing.T) {
-	type fields struct {
-		nonce  *[]byte
-		aesgcm *cipher.AEAD
-	}
+func Test_cripto_DencriptEncript(t *testing.T) {
 	type args struct {
-		src []byte
+		src    []byte
+		secret string
 	}
-	key := "secret0"
-	cripto, e := NewCripto([]byte(key))
-	log.Println(cripto, e)
-	dst := cripto.Encript([]byte("hello12323212"))
-	log.Println(hex.EncodeToString(dst))
-	tex := hex.EncodeToString(dst)
-	xet, _ := hex.DecodeString(tex)
-	src, err := cripto.Dencript(xet)
-
-	log.Println(string(src), err, []byte("hello12323212"))
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   []byte
+		name    string
+		args    args
+		want    string
+		wantErr bool
 	}{
-		///
+		{
+			name: "cripto",
+			args: args{
+				src:    []byte("hello world"),
+				secret: "secret",
+			},
+			want: "hello world",
+		},
+		{
+			name: "cripto",
+			args: args{
+				src:    []byte("123456789"),
+				secret: "secret1",
+			},
+			want: "123456789",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &Cripto{
-				nonce:  tt.fields.nonce,
-				aesgcm: tt.fields.aesgcm,
+			e, err := middleware.NewCripto([]byte(tt.args.secret))
+			if err != nil {
+				t.Errorf("cripto.Dencript() error = %v", err)
 			}
-			if got := e.Encript(tt.args.src); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Cripto.Encript() = %v, want %v", got, tt.want)
+			gotE := e.Encript(tt.args.src)
+			got, err := e.Dencript(gotE)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("cripto.Dencript() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(string(got), tt.want) {
+				t.Errorf("cripto.Dencript() = %v, want %v", string(got), tt.want)
 			}
 		})
 	}

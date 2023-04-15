@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
-	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
 )
 
 // /// mock.
@@ -18,10 +17,10 @@ func (s *APIServiceMock) APISetShorten(
 	return &core.ResponseAPIShorten{}, nil
 }
 
-func TestApiHandler_APISetShorten(t *testing.T) {
+func Test_apiHandler_apiSetShorten(t *testing.T) {
 	type fields struct {
-		service handler.APIService
-		config  *core.Config
+		Service APIServiceMock
+		Config  *core.Config
 	}
 	type args struct {
 		w http.ResponseWriter
@@ -90,38 +89,8 @@ func TestAPIHandler_APIDeleteUserURLS(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &handler.APIHandler{
-				Service: tt.fields.Service,
-				Config:  tt.fields.Config,
-			}
-			h.APIDeleteUserURLS(tt.args.w, tt.args.r)
-		})
-	}
-}
-
-func TestAPIHandler_APISetShortenBatch(t *testing.T) {
-	type fields struct {
-		Service handler.APIService
-		Config  *core.Config
-	}
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := &handler.APIHandler{
-				Service: tt.fields.Service,
-				Config:  tt.fields.Config,
-			}
-			h.APISetShortenBatch(tt.args.w, tt.args.r)
+			// h := handler.New()
+			// h.apiSetShorten(tt.args.w, tt.args.r)
 		})
 	}
 }

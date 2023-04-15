@@ -21,6 +21,7 @@ func NewBasic(conf *core.Config, s Storage, auth *AUTHService) *BasicService {
 	}
 }
 
+// Get URL, response user url.
 func (s *BasicService) GetURL(ctx context.Context, id string) (string, error) {
 	res, err := s.storage.GetURL(ctx, id)
 	if err != nil {

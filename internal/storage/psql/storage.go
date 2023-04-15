@@ -203,14 +203,14 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 }
 
 func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
-	ctx = context.Background()
-	tx, err := s.db.Begin(ctx)
+	ctx1 := context.Background()
+	tx, err := s.db.Begin(ctx1)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		errRllback := tx.Rollback(ctx)
+		errRllback := tx.Rollback(ctx1)
 		if errRllback != nil {
 			log.Print("errRllback:", errRllback)
 		}
@@ -225,7 +225,7 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 		}
 	}
 
-	_, err = tx.Exec(ctx, `
+	_, err = tx.Exec(ctx1, `
 		update links
 		set deleted = true
 		where id in (`+listIds+`) and uuid = $1`,
@@ -237,7 +237,7 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 		return err
 	}
 
-	err = tx.Commit(ctx)
+	err = tx.Commit(ctx1)
 	if err != nil {
 		log.Println("errCommit:", err)
 		return err

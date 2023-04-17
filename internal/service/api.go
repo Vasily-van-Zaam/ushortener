@@ -15,6 +15,7 @@ var BUF chan *core.BuferDeleteURL = make(chan *core.BuferDeleteURL, 1000)
 type API struct {
 	storage Storage
 	config  *core.Config
+	shorter *shorter
 	core.AUTHService
 }
 
@@ -22,6 +23,7 @@ func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
 	return &API{
 		*s,
 		conf,
+		NewShorter(),
 		auth,
 	}
 }
@@ -60,7 +62,7 @@ func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 		return nil, err
 	}
 	return &core.ResponseAPIShorten{
-		Result: s.config.BaseURL + "/" + res,
+		Result: fmt.Sprint(s.config.BaseURL+"/", res),
 	}, err
 }
 
@@ -79,7 +81,7 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 	for _, r := range res {
 		if r != nil {
 			resAPI = append(resAPI, &core.ResponseAPIUserURL{
-				ShortURL:    fmt.Sprint(s.config.BaseURL, "/", r.ID),
+				ShortURL:    fmt.Sprint(s.config.BaseURL, "/", s.shorter.ToString(int64(r.ID))),
 				OriginalURL: r.Link,
 			})
 		}

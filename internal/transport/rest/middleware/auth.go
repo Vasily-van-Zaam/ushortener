@@ -39,7 +39,9 @@ func NewAuth(conf *core.Config, service core.AUTHService) Auth {
 func (a *auth) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		newReq := a.generatCookie(w, r)
-		next.ServeHTTP(w, newReq)
+		if next != nil {
+			next.ServeHTTP(w, newReq)
+		}
 	})
 }
 

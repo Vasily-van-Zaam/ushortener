@@ -66,6 +66,11 @@ func (h *basicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if res == "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	w.Header().Set("Location", res)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 	_, errW := w.Write([]byte(res))

@@ -1,3 +1,4 @@
+// Server rest api.
 package rest
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// Route.
 type router interface {
 	Run(string) error
 }
@@ -18,6 +20,7 @@ type server struct {
 	config *core.Config
 }
 
+// Create new route.
 func New(conf *core.Config, h *chi.Mux) (router, error) {
 	return &server{
 		router: h,
@@ -25,6 +28,7 @@ func New(conf *core.Config, h *chi.Mux) (router, error) {
 	}, nil
 }
 
+// Function server Run.
 func (s *server) Run(addresPort string) error {
 	log.Println("START SERVER ", addresPort, s.config.ServerTimeout)
 	server := &http.Server{

@@ -1,3 +1,4 @@
+// Сервис кортких ссылок
 package main
 
 import (
@@ -8,8 +9,9 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/docs"
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/Vasily-van-Zaam/ushortener/internal/service"
-	filestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/file"
-	memorystore "github.com/Vasily-van-Zaam/ushortener/internal/storage/memory"
+
+	// filestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/file"
+	// memorystore "github.com/Vasily-van-Zaam/ushortener/internal/storage/memory"
 	"github.com/Vasily-van-Zaam/ushortener/internal/storage/psql"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
@@ -37,7 +39,7 @@ func main() {
 			log.Panicln(err)
 		}
 	case cfg.Filestore != "":
-		storage, err = filestore.New(&cfg)
+		// storage, err = filestore.New(&cfg)
 
 		log.Println("FILE STORE")
 		if err != nil {
@@ -45,7 +47,7 @@ func main() {
 		}
 		go storage.Update()
 	default:
-		storage, err = memorystore.New(&cfg)
+		// storage, err = memorystore.New(&cfg)
 		log.Println("MEMORY STORE")
 		if err != nil {
 			log.Panicln(err)

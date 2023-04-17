@@ -1,3 +1,4 @@
+// Слой бизнес логики.
 package service
 
 import (
@@ -9,7 +10,7 @@ import (
 
 type Storage interface {
 	GetURL(ctx context.Context, id string) (string, error)
-	SetURL(ctx context.Context, link *core.Link) (string, error)
+	SetURL(ctx context.Context, link *core.Link) (int64, error)
 	GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error)
 	SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error)
 	DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error

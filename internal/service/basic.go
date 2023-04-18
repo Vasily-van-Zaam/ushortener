@@ -65,6 +65,7 @@ func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) 
 	return url, err
 }
 
+// Ping service.
 func (s *BasicService) Ping(ctx context.Context) error {
 	return s.storage.Ping(ctx)
 }

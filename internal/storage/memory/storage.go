@@ -99,9 +99,13 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 
 	return result, errConflict
 }
+
+// Close sstore.
 func (s *Store) Close() error {
 	return nil
 }
+
+// Ping store.
 func (s *Store) Ping(ctx context.Context) error {
 	return nil
 }

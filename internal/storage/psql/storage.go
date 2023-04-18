@@ -253,11 +253,13 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 	return nil
 }
 
+// Close store.
 func (s *Store) Close() error {
 	s.db.Close()
 	return nil // s.db.Close(context.Background())
 }
 
+// Ping store.
 func (s *Store) Ping(ctx context.Context) error {
 	err := s.db.Ping(ctx) // PgConn().CheckConn()
 	if err != nil {
@@ -266,4 +268,5 @@ func (s *Store) Ping(ctx context.Context) error {
 	return nil
 }
 
+// For implements.
 func (s *Store) Update() {}

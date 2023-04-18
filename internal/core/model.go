@@ -13,14 +13,14 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
 
-// User.
+// User structure.
 type UserData string
 
 const (
 	USERDATA UserData = "user_data"
 )
 
-// Link.
+// Link structure. For save in DB and returns to client.
 type Link struct {
 	ID        int    `db:"id" json:"id"`
 	Link      string `db:"link" json:"link"`
@@ -50,7 +50,7 @@ func NewErrConflict() *ErrConflict {
 	return &ErrConflict{}
 }
 
-// User.
+// User struct. For autorization data.
 type User struct {
 	ID string `db:"id" json:"id"`
 }
@@ -65,34 +65,35 @@ func (u *User) SetUserIDFromContext(ctx context.Context) error {
 	return nil
 }
 
-// Request API.
+// Request API Shorten.
 type RequestAPIShorten struct {
 	URL string `json:"url"`
 }
 
-// Response API.
+// Response API Shorten.
 type ResponseAPIShorten struct {
 	Result string `json:"result"`
 }
 
+// Response urls user
 type ResponseAPIUserURL struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
 
-// Request Batch.
+// Request  url Batch user.
 type RequestAPIShortenBatch struct {
 	CorrelationID string `json:"correlation_id"`
 	OriginalURL   string `json:"original_url"`
 }
 
-// Response Batch.
+// Response url Batch user.
 type ResponseAPIShortenBatch struct {
 	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
 
-// Maim config struct.
+// Main config struct.
 type Config struct {
 	ServerAddress    string `env:"SERVER_ADDRESS"`
 	BaseURL          string `env:"BASE_URL"`
@@ -104,7 +105,7 @@ type Config struct {
 	DataBaseDNS      string `env:"DATABASE_DSN"`
 }
 
-// set default values config.
+// Set default values config.
 func (c *Config) SetDefault() {
 	emptyVar := ""
 	if c.BaseURL == "" {

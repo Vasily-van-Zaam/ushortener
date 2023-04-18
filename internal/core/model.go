@@ -16,6 +16,7 @@ import (
 // User structure.
 type UserData string
 
+// User data constant.
 const (
 	USERDATA UserData = "user_data"
 )
@@ -75,7 +76,7 @@ type ResponseAPIShorten struct {
 	Result string `json:"result"`
 }
 
-// Response urls user
+// Response urls user.
 type ResponseAPIUserURL struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
@@ -178,7 +179,7 @@ func (b *BuferDeleteURL) UnConvertIDS() []*string {
 	sh := shorter.NewShorter59()
 	ids := make([]*string, len(b.IDS))
 	for i, id := range b.IDS {
-		uid := sh.UnConnvert(*id)
+		uid := sh.UnConvert(*id)
 		ids[i] = &uid
 	}
 	return ids

@@ -14,6 +14,14 @@ type shorter struct {
 	bit     int64
 }
 
+// New create universal.
+func New(symbols []string) *shorter {
+	return &shorter{
+		symbols: symbols,
+		bit:     int64(len(symbols)),
+	}
+}
+
 // Create converter int to string59.
 func NewShorter59() *shorter {
 	var (
@@ -99,7 +107,7 @@ start:
 
 // Un Converter.
 // sum m*b^n.
-func (s *shorter) UnConnvert(id string) string {
+func (s *shorter) UnConvert(id string) string {
 	if id == "" {
 		return ""
 	}

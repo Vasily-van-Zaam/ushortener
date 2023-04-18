@@ -203,6 +203,8 @@ func (s *Store) Update() {
 func (s *Store) Close() error {
 	return nil
 }
+
+// Ping store.
 func (s *Store) Ping(ctx context.Context) error {
 	return nil
 }

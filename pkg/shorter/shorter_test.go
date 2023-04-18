@@ -45,7 +45,7 @@ func Test_shorter_Convet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := shorter.NewShorter59()
 			idStr := s.Convert(tt.args.id)
-			id := s.UnConnvert(idStr)
+			id := s.UnConvert(idStr)
 			log.Println(id, "==", tt.args.id, "==", idStr)
 
 			if id != tt.args.id {
@@ -76,9 +76,41 @@ func Test_shorter_ToInt(t *testing.T) {
 			s := shorter.NewShorter59()
 			// got := s.ToInt(tt.args.id)
 			// log.Println(tt.args.id, "=", got)
-			if got := s.UnConnvert(tt.args.id); got != tt.want {
+			if got := s.UnConvert(tt.args.id); got != tt.want {
 				t.Errorf("shorter.ToInt() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Test_shorter_Some_Convert(t *testing.T) {
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			args: args{
+				id: "123434343",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := shorter.New([]string{
+				"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+			})
+			got := s.Convert(tt.args.id)
+			got1 := s.UnConvert(got)
+			log.Println(got, got1)
+			// got := s.ToInt(tt.args.id)
+			// log.Println(tt.args.id, "=", got)
+			// if got := s.Convert(tt.args.id); got != tt.want {
+			// 	t.Errorf("shorter.ToInt() = %v, want %v", got, tt.want)
+			// }
 		})
 	}
 }

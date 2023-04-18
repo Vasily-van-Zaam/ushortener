@@ -123,4 +123,5 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 	return nil
 }
 
+// For implementations.
 func (s *Store) Update() {}

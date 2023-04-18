@@ -13,7 +13,7 @@ import (
 // Shorter implements for convert id int to string59.
 type iShorter interface {
 	Convert(id string) string
-	UnConnvert(id string) string
+	UnConvert(id string) string
 }
 
 // Basic service structure.
@@ -36,7 +36,7 @@ func NewBasic(conf *core.Config, s *Storage, auth *AUTHService) *BasicService {
 
 // Get URL, response user url.
 func (s *BasicService) GetURL(ctx context.Context, id string) (string, error) {
-	res, err := s.storage.GetURL(ctx, fmt.Sprint(s.shorter.UnConnvert(id)))
+	res, err := s.storage.GetURL(ctx, fmt.Sprint(s.shorter.UnConvert(id)))
 	if err != nil {
 		return "", err
 	}

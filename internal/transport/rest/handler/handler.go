@@ -1,3 +1,4 @@
+// List Handlers
 package handler
 
 import (
@@ -10,6 +11,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// Create hadlers.
 func New(conf *core.Config, b basicService, a apiService, m ...func(http.Handler) http.Handler) *chi.Mux {
 	r := chi.NewMux()
 	r.Use(m...)

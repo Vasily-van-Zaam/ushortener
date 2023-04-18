@@ -1,3 +1,4 @@
+// Memory store
 package memorystore
 
 import (
@@ -9,11 +10,13 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
+// Main structure.
 type Store struct {
 	Config *core.Config
 	Data   []*core.Link
 }
 
+// Creeate new store.
 func New(conf *core.Config) (*Store, error) {
 	return &Store{
 		Config: conf,
@@ -21,6 +24,7 @@ func New(conf *core.Config) (*Store, error) {
 	}, nil
 }
 
+// Get url.
 func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	for _, l := range s.Data {
 		idInt, _ := strconv.Atoi(id)
@@ -36,6 +40,8 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	}
 	return "", nil
 }
+
+// Sset url.
 func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	for _, l := range s.Data {
 		if l.Link == link.Link {
@@ -55,6 +61,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	return url, nil
 }
 
+// Get list user urls.
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
 	links := make([]*core.Link, 0, 10)
 	for _, l := range s.Data {
@@ -68,6 +75,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	return links, nil
 }
 
+// Set list user urls.
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
 	result := make([]*core.Link, 0, 10)
 	var errConflict *core.ErrConflict
@@ -98,6 +106,7 @@ func (s *Store) Ping(ctx context.Context) error {
 	return nil
 }
 
+// Delete list urls by list id.
 func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
 	for _, l := range s.Data {
 		for _, idStr := range ids {

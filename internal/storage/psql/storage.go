@@ -11,11 +11,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// Main structure.
 type Store struct {
 	config *core.Config
 	db     *pgxpool.Pool // *pgx.Conn
 }
 
+// Create store.
 func New(conf *core.Config) (*Store, error) {
 	ctx := context.Background()
 
@@ -66,6 +68,7 @@ func New(conf *core.Config) (*Store, error) {
 	}, nil
 }
 
+// Get utl.
 func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	res := s.db.QueryRow(ctx, `
 	SELECT id,uuid,link,deleted  FROM links WHERE id=$1;
@@ -88,6 +91,7 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	return "", nil
 }
 
+// Set url.
 func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	var resID any
 	searchLink := s.db.QueryRow(ctx, `
@@ -134,6 +138,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	return url, nil
 }
 
+// Get list user urls.
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
 	// userID = "4f744217-a3cb-4bad-9c76-6880e41d336f"
 	query, err := s.db.Query(ctx, `
@@ -156,6 +161,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	return res, nil
 }
 
+// Set list urls.
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
 	var errConflict *core.ErrConflict
 	response := make([]*core.Link, 0)
@@ -202,6 +208,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 	return response, errConflict
 }
 
+// Delete list urls by list id.
 func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
 	ctx1 := context.Background()
 	tx, err := s.db.Begin(ctx1)

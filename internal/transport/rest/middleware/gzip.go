@@ -1,3 +1,4 @@
+// Gzip middleware
 package middleware
 
 import (
@@ -11,26 +12,31 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
+// Structure.
 type zip struct {
 	Config *core.Config
 }
 
+// Create new Gzip.
 func NewGzip(conf *core.Config) *zip {
 	return &zip{
 		Config: conf,
 	}
 }
 
+// Implementation of Write.
 type gzipResponseWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
 }
 
+// Implementation of Write.
 func (w gzipResponseWriter) Write(b []byte) (int, error) {
 	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него
 	return w.Writer.Write(b)
 }
 
+// Handle.
 func (g *zip) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var bodyBytes []byte

@@ -1,4 +1,4 @@
-// Слой бизнес логики.
+// Business logic
 package service
 
 import (
@@ -8,6 +8,7 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
+// Main function Storage for service.
 type Storage interface {
 	GetURL(ctx context.Context, id string) (string, error)
 	SetURL(ctx context.Context, link *core.Link) (string, error)
@@ -19,17 +20,21 @@ type Storage interface {
 	Close() error
 }
 
+// Auth struct.
 type AUTHService struct {
 	storage Storage
 	config  *core.Config
 }
 
+// Create new Auth struct.
 func NewAuth(conf *core.Config, s *Storage) *AUTHService {
 	return &AUTHService{
 		storage: *s,
 		config:  conf,
 	}
 }
+
+// Create neew user.
 func (a *AUTHService) CreateUser() {
 	log.Println("HELLO USER CREATE")
 }

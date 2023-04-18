@@ -1,3 +1,4 @@
+// Test store memory
 package memorystore_test
 
 import (

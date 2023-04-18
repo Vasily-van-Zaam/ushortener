@@ -1,3 +1,4 @@
+// Serveice API
 package service
 
 import (
@@ -9,10 +10,13 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
 
+// Shorter implements for convert id int to string59.
 type iShorter interface {
 	Convert(id string) string
 	UnConnvert(id string) string
 }
+
+// Basic service structure.
 type BasicService struct {
 	storage Storage
 	config  *core.Config
@@ -20,6 +24,7 @@ type BasicService struct {
 	core.AUTHService
 }
 
+// Create a new basic service.
 func NewBasic(conf *core.Config, s *Storage, auth *AUTHService) *BasicService {
 	return &BasicService{
 		*s,
@@ -37,6 +42,8 @@ func (s *BasicService) GetURL(ctx context.Context, id string) (string, error) {
 	}
 	return res, nil
 }
+
+// Set new url.
 func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) {
 	user := core.User{}
 	err := user.SetUserIDFromContext(ctx)

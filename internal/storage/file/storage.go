@@ -14,18 +14,21 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
+// Event structure for file.
 type Event struct {
 	file    *os.File
 	scanner *bufio.Scanner
 	writer  *bufio.Writer
 }
 
+// Main structure.
 type Store struct {
 	Config *core.Config
 	Data   []*core.Link
 	saved  chan any
 }
 
+// Open files.
 func (s *Store) newOpenFile() (*Event, error) {
 	file, err := os.OpenFile(s.Config.Filestore, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 
@@ -39,6 +42,7 @@ func (s *Store) newOpenFile() (*Event, error) {
 	}, nil
 }
 
+// Scan content file.
 func scan(data *Event) []*core.Link {
 	res := make([]*core.Link, 0)
 	line := 0
@@ -63,6 +67,7 @@ func scan(data *Event) []*core.Link {
 	return res
 }
 
+// New store.
 func New(conf *core.Config) (*Store, error) {
 	s := &Store{
 		Config: conf,
@@ -79,6 +84,7 @@ func New(conf *core.Config) (*Store, error) {
 	return s, nil
 }
 
+// Get url.
 func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	for _, l := range s.Data {
 		idInt, _ := strconv.Atoi(id)
@@ -94,6 +100,8 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	}
 	return "", nil
 }
+
+// Set url.
 func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	for _, l := range s.Data {
 		if l.Link == link.Link {
@@ -114,6 +122,7 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	return url, nil
 }
 
+// Get list user urls.
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
 	links := make([]*core.Link, 0, 10)
 	for _, l := range s.Data {
@@ -127,6 +136,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	return links, nil
 }
 
+// Set list user urls.
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
 	result := make([]*core.Link, 0, 10)
 	var errConflict *core.ErrConflict
@@ -151,6 +161,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 	return result, errConflict
 }
 
+// Update data.
 func (s *Store) Update() {
 	for save := range s.saved {
 		wg := &sync.WaitGroup{}
@@ -186,6 +197,8 @@ func (s *Store) Update() {
 		wg.Wait()
 	}
 }
+
+// Close Store.
 func (s *Store) Close() error {
 	return nil
 }
@@ -193,6 +206,7 @@ func (s *Store) Ping(ctx context.Context) error {
 	return nil
 }
 
+// Delete lisr url by id.
 func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
 	for _, l := range s.Data {
 		for _, idStr := range ids {

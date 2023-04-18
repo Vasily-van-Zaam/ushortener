@@ -1,3 +1,4 @@
+// Auth middleware
 package middleware
 
 import (
@@ -15,16 +16,19 @@ import (
 	"github.com/google/uuid"
 )
 
+// Implementation.
 type Auth interface {
 	Handle(next http.Handler) http.Handler
 }
 
+// Struture.
 type auth struct {
 	Config  *core.Config
 	service core.AUTHService
 	cripto  cripter
 }
 
+// Create a new AUTH middleware.
 func NewAuth(conf *core.Config, service core.AUTHService) Auth {
 	c, err := NewCripto([]byte(conf.SecretKey))
 	if err != nil {
@@ -36,6 +40,8 @@ func NewAuth(conf *core.Config, service core.AUTHService) Auth {
 		cripto:  c,
 	}
 }
+
+// Handle response, request.
 func (a *auth) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		newReq := a.generatCookie(w, r)
@@ -45,6 +51,7 @@ func (a *auth) Handle(next http.Handler) http.Handler {
 	})
 }
 
+// Generate new cookies.
 func (a *auth) generatCookie(w http.ResponseWriter, r *http.Request) *http.Request {
 	cookie := r.Cookies()
 	id := uuid.New().String()
@@ -78,6 +85,7 @@ func (a *auth) generatCookie(w http.ResponseWriter, r *http.Request) *http.Reque
 	return r.WithContext(setContext(r, core.User{ID: hex.EncodeToString(criptID)}))
 }
 
+// Set conext.
 func setContext(r *http.Request, user core.User) context.Context {
 	return context.WithValue(
 		r.Context(),
@@ -86,6 +94,7 @@ func setContext(r *http.Request, user core.User) context.Context {
 	)
 }
 
+// Cripto.
 type cripter interface {
 	Encript(src []byte) []byte
 	Dencript(dst []byte) ([]byte, error)
@@ -95,6 +104,7 @@ type cripto struct {
 	aesgcm *cipher.AEAD
 }
 
+// New cripto.
 func NewCripto(key []byte) (cripter, error) {
 	h := sha256.New()
 	h.Write(key)
@@ -116,10 +126,13 @@ func NewCripto(key []byte) (cripter, error) {
 	return &cripto{nonce: &nonce, aesgcm: &aesgcm}, nil
 }
 
+// Encript.
 func (e *cripto) Encript(src []byte) []byte {
 	dst := (*e.aesgcm).Seal(nil, *e.nonce, src, nil)
 	return dst
 }
+
+// Decript.
 func (e *cripto) Dencript(dst []byte) ([]byte, error) {
 	res, err := (*e.aesgcm).Open(nil, *e.nonce, dst, nil) // расшифровываем
 	if err != nil {
@@ -128,6 +141,7 @@ func (e *cripto) Dencript(dst []byte) ([]byte, error) {
 	return res, nil
 }
 
+// Generate Random.
 func GenerateRandom(size int) ([]byte, error) {
 	b := make([]byte, size)
 	_, err := rand.Read(b)

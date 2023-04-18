@@ -1,3 +1,4 @@
+// Serveice API
 package service
 
 import (
@@ -11,8 +12,10 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
 
+// Channel buffer for delete url.
 var BUF chan *core.BuferDeleteURL = make(chan *core.BuferDeleteURL, 1000)
 
+// Main struct API.
 type API struct {
 	storage Storage
 	config  *core.Config
@@ -20,6 +23,7 @@ type API struct {
 	core.AUTHService
 }
 
+// Create new service API.
 func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
 	return &API{
 		*s,
@@ -28,6 +32,8 @@ func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
 		auth,
 	}
 }
+
+// Listeneer delete URL.
 func (s *API) BindBuferIds() {
 	// defer s.BindBuferIds()
 	for b := range BUF {
@@ -47,6 +53,7 @@ func (s *API) BindBuferIds() {
 	}
 }
 
+// Set shorten URL.
 func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
 	user := core.User{}
 
@@ -68,6 +75,7 @@ func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 	}, err
 }
 
+// Get list user  urls.
 func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error) {
 	user := core.User{}
 	err := user.SetUserIDFromContext(ctx)
@@ -92,6 +100,7 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 	return resAPI, err
 }
 
+// Set list urls.
 func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPIShortenBatch) ([]*core.ResponseAPIShortenBatch, error) {
 	user := core.User{}
 	err := user.SetUserIDFromContext(ctx)
@@ -119,12 +128,14 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 	return res, err
 }
 
+// Delete list urls by list id.
 func (s *API) APIDeleteUserURLS(ctx context.Context, ids []*string) error {
 	var user core.User
 	err := user.SetUserIDFromContext(ctx)
 	if err != nil {
 		return err
 	}
+	// Send to the channel for removal.
 	BUF <- &core.BuferDeleteURL{
 		User: &user,
 		Ctx:  ctx,

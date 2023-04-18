@@ -1,3 +1,4 @@
+// Busic handlers
 package handler
 
 import (
@@ -13,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// Implements basic service.
 type basicService interface {
 	GetURL(ctx context.Context, link string) (string, error)
 	SetURL(ctx context.Context, link string) (string, error)
@@ -20,11 +22,13 @@ type basicService interface {
 	core.AUTHService
 }
 
+// Bassic structure.
 type basicHandler struct {
 	Service basicService
 	Config  *core.Config
 }
 
+// Create basic.
 func newBasic(conf *core.Config, s basicService) *basicHandler {
 	return &basicHandler{
 		Service: s,
@@ -129,6 +133,7 @@ func (h *basicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	h.Config.LogResponse(w, r, res, http.StatusCreated)
 }
 
+// Pig service.
 func (h *basicHandler) ping(w http.ResponseWriter, r *http.Request) {
 	if h.Service.Ping(r.Context()) != nil {
 		w.WriteHeader(http.StatusInternalServerError)

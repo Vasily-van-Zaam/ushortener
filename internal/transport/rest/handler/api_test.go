@@ -1,3 +1,4 @@
+// Test API handlers
 package handler_test
 
 import (

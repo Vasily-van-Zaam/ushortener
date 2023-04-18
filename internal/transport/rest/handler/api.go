@@ -1,3 +1,4 @@
+// Handlers API
 package handler
 
 import (
@@ -12,6 +13,7 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
+// Implements Service.
 type apiService interface {
 	APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 	APISetShortenBatch(ctx context.Context,
@@ -23,6 +25,7 @@ type apiService interface {
 	core.AUTHService
 }
 
+// Api structure.
 type apiHandler struct {
 	Service apiService
 	Config  *core.Config

@@ -1,3 +1,4 @@
+// Package for converting a number to a string from one bit depth to another.
 package shorter
 
 import (
@@ -7,11 +8,13 @@ import (
 	"strings"
 )
 
+// Main structure.
 type shorter struct {
 	symbols []string
 	bit     int64
 }
 
+// Create converter int to string59.
 func NewShorter59() *shorter {
 	var (
 		symbols = []string{
@@ -30,6 +33,8 @@ func NewShorter59() *shorter {
 	}
 }
 
+// Function verssion 1.
+// @Depricated.
 func (s *shorter) ToStringV1(id int64) string {
 	var list []int64
 	result := []string{}
@@ -65,6 +70,7 @@ start:
 	return strings.Join(result, "")
 }
 
+// New version.
 func (s *shorter) Convert(str string) string {
 	id, _ := strconv.ParseInt(str, 0, 64)
 	result := []string{}
@@ -91,6 +97,7 @@ start:
 	return strings.Join(result, "")
 }
 
+// Un Converter.
 // sum m*b^n.
 func (s *shorter) UnConnvert(id string) string {
 	if id == "" {

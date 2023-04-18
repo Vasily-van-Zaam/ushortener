@@ -3,6 +3,7 @@ package psql
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
@@ -87,8 +88,8 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	return "", nil
 }
 
-func (s *Store) SetURL(ctx context.Context, link *core.Link) (int64, error) {
-	// var resID any
+func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
+	var resID any
 	searchLink := s.db.QueryRow(ctx, `
 	SELECT id,uuid,link,user_id FROM links WHERE link=$1;
 	`, link.Link)
@@ -101,13 +102,13 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (int64, error) {
 	}
 
 	if linkDB.ID != 0 {
-		// url := fmt.Sprint(linkDB.ID)
-		return int64(linkDB.ID), core.NewErrConflict()
+		url := fmt.Sprint(linkDB.ID)
+		return url, core.NewErrConflict()
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	defer func() {
 		errRllback := tx.Rollback(ctx)
@@ -123,14 +124,14 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (int64, error) {
 	if errInsert != nil {
 		log.Println("errInsert:", errInsert)
 	}
-	// resID = linkDB.ID
+	resID = linkDB.ID
 
 	errCommit := tx.Commit(ctx)
 	if errCommit != nil {
 		log.Println("errCommit:", errCommit)
 	}
-	// url := fmt.Sprint(resID)
-	return int64(linkDB.ID), nil
+	url := fmt.Sprint(resID)
+	return url, nil
 }
 
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {

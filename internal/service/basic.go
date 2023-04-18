@@ -6,12 +6,17 @@ import (
 	"fmt"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
 
+type iShorter interface {
+	Convert(id string) string
+	UnConnvert(id string) string
+}
 type BasicService struct {
 	storage Storage
 	config  *core.Config
-	shorter *shorter
+	shorter iShorter
 	core.AUTHService
 }
 
@@ -19,14 +24,14 @@ func NewBasic(conf *core.Config, s *Storage, auth *AUTHService) *BasicService {
 	return &BasicService{
 		*s,
 		conf,
-		NewShorter(),
+		shorter.NewShorter59(),
 		auth,
 	}
 }
 
 // Get URL, response user url.
 func (s *BasicService) GetURL(ctx context.Context, id string) (string, error) {
-	res, err := s.storage.GetURL(ctx, fmt.Sprint(s.shorter.ToInt(id)))
+	res, err := s.storage.GetURL(ctx, fmt.Sprint(s.shorter.UnConnvert(id)))
 	if err != nil {
 		return "", err
 	}
@@ -49,7 +54,7 @@ func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) 
 		return "", err
 	}
 
-	url := s.config.BaseURL + "/" + s.shorter.ToString(res)
+	url := s.config.BaseURL + "/" + s.shorter.Convert(res)
 	return url, err
 }
 

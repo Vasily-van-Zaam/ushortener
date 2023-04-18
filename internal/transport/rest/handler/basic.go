@@ -67,7 +67,7 @@ func (h *basicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if res == "" {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

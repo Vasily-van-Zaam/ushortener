@@ -1,7 +1,9 @@
-package service
+package shorter
 
 import (
+	"fmt"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -10,7 +12,7 @@ type shorter struct {
 	bit     int64
 }
 
-func NewShorter() *shorter {
+func NewShorter59() *shorter {
 	var (
 		symbols = []string{
 			"$", "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -63,7 +65,8 @@ start:
 	return strings.Join(result, "")
 }
 
-func (s *shorter) ToString(id int64) string {
+func (s *shorter) Convert(str string) string {
+	id, _ := strconv.ParseInt(str, 0, 64)
 	result := []string{}
 start:
 
@@ -89,9 +92,9 @@ start:
 }
 
 // sum m*b^n.
-func (s *shorter) ToInt(id string) int64 {
+func (s *shorter) UnConnvert(id string) string {
 	if id == "" {
-		return 0
+		return ""
 	}
 	list := strings.Split(id, "")
 	listIndex := make([]int64, len(list))
@@ -118,5 +121,5 @@ start:
 	for _, v := range resultSum {
 		res += v
 	}
-	return res
+	return fmt.Sprint(res)
 }

@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
 
 var BUF chan *core.BuferDeleteURL = make(chan *core.BuferDeleteURL, 1000)
@@ -15,7 +16,7 @@ var BUF chan *core.BuferDeleteURL = make(chan *core.BuferDeleteURL, 1000)
 type API struct {
 	storage Storage
 	config  *core.Config
-	shorter *shorter
+	shorter iShorter
 	core.AUTHService
 }
 
@@ -23,7 +24,7 @@ func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
 	return &API{
 		*s,
 		conf,
-		NewShorter(),
+		shorter.NewShorter59(),
 		auth,
 	}
 }
@@ -35,7 +36,8 @@ func (s *API) BindBuferIds() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err := s.storage.DeleteURLSBatch(buf.Ctx, buf.IDS, buf.User.ID)
+			ids := buf.UnConvertIDS()
+			err := s.storage.DeleteURLSBatch(buf.Ctx, ids, buf.User.ID)
 			if err != nil {
 				log.Println("DELETED ERROR", err)
 			}
@@ -62,7 +64,7 @@ func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 		return nil, err
 	}
 	return &core.ResponseAPIShorten{
-		Result: fmt.Sprint(s.config.BaseURL+"/", res),
+		Result: fmt.Sprint(s.config.BaseURL+"/", s.shorter.Convert(res)),
 	}, err
 }
 
@@ -81,7 +83,7 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 	for _, r := range res {
 		if r != nil {
 			resAPI = append(resAPI, &core.ResponseAPIUserURL{
-				ShortURL:    fmt.Sprint(s.config.BaseURL, "/", s.shorter.ToString(int64(r.ID))),
+				ShortURL:    fmt.Sprint(s.config.BaseURL, "/", r.ConverID()),
 				OriginalURL: r.Link,
 			})
 		}
@@ -110,7 +112,7 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 	for i, r := range resDB {
 		res = append(res, &core.ResponseAPIShortenBatch{
 			CorrelationID: request[i].CorrelationID,
-			ShortURL:      fmt.Sprint(s.config.BaseURL, "/", r.ID),
+			ShortURL:      fmt.Sprint(s.config.BaseURL, "/", r.ConverID()),
 		})
 	}
 

@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
 
 type UserData string
@@ -22,6 +25,12 @@ type Link struct {
 	UUID      string `db:"uuid" json:"uuid"`
 	UserID    int    `db:"user_id" json:"user_id"`
 	Deleted   bool   `db:"deleted" json:"deleted"`
+}
+
+func (l *Link) ConverID() string {
+	sh := shorter.NewShorter59()
+	id := sh.Convert(fmt.Sprint(l.ID))
+	return id
 }
 
 type ErrConflict struct{}
@@ -141,4 +150,14 @@ type BuferDeleteURL struct {
 	IDS  []*string
 	User *User
 	Ctx  context.Context
+}
+
+func (b *BuferDeleteURL) UnConvertIDS() []*string {
+	sh := shorter.NewShorter59()
+	ids := make([]*string, len(b.IDS))
+	for i, id := range b.IDS {
+		uid := sh.UnConnvert(*id)
+		ids[i] = &uid
+	}
+	return ids
 }

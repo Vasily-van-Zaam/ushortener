@@ -1,3 +1,4 @@
+// Tests service
 package service_test
 
 import (

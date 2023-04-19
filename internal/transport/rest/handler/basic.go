@@ -1,3 +1,4 @@
+// Busic handlers
 package handler
 
 import (
@@ -13,20 +14,23 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type BasicService interface {
+// Implements basic service.
+type basicService interface {
 	GetURL(ctx context.Context, link string) (string, error)
 	SetURL(ctx context.Context, link string) (string, error)
 	Ping(ctx context.Context) error
 	core.AUTHService
 }
 
-type BasicHandler struct {
-	Service BasicService
+// Bassic structure.
+type basicHandler struct {
+	Service basicService
 	Config  *core.Config
 }
 
-func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
-	return &BasicHandler{
+// Create basic.
+func newBasic(conf *core.Config, s basicService) *basicHandler {
+	return &basicHandler{
 		Service: s,
 		Config:  conf,
 	}
@@ -42,7 +46,7 @@ func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
 // @Header		 307 {string}  Location "https://some.com/link"
 // @Failure      400  {string} 	"error"
 // @Router       /{id} [get].
-func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
+func (h *basicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	service := h.Service
 	ctx := r.Context()
 
@@ -66,6 +70,11 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if res == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	w.Header().Set("Location", res)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 	_, errW := w.Write([]byte(res))
@@ -84,7 +93,7 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 // @Success		 201  {string}  "http://localhost:8080/1"
 // @Failure      400  {string} 	"error"
 // @Router       / [post].
-func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
+func (h *basicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	service := h.Service
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
@@ -124,7 +133,8 @@ func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	h.Config.LogResponse(w, r, res, http.StatusCreated)
 }
 
-func (h *BasicHandler) Ping(w http.ResponseWriter, r *http.Request) {
+// Pig service.
+func (h *basicHandler) ping(w http.ResponseWriter, r *http.Request) {
 	if h.Service.Ping(r.Context()) != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

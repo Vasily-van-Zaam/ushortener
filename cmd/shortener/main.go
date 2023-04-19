@@ -1,3 +1,4 @@
+// Сервис кортких ссылок
 package main
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/docs"
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/Vasily-van-Zaam/ushortener/internal/service"
+
 	filestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/file"
 	memorystore "github.com/Vasily-van-Zaam/ushortener/internal/storage/memory"
 	"github.com/Vasily-van-Zaam/ushortener/internal/storage/psql"
@@ -58,15 +60,19 @@ func main() {
 
 	apiService := service.NewAPI(&cfg, &storage, authService)
 	go apiService.BindBuferIds()
-	middlewares := []rest.Middleware{
-		middleware.NewGzip(&cfg),
-		middleware.NewAuth(&cfg, authService),
-	}
-	handlers := handler.NewHandlers(
-		handler.NewBasic(basicService, &cfg),
-		handler.NewAPI(apiService, &cfg),
+
+	handlers := handler.New(
+		&cfg,
+		basicService,
+		apiService,
+		middleware.NewAuth(&cfg, authService).Handle,
+		middleware.NewGzip(&cfg).Handle,
 	)
-	server, routerError := rest.NewServer(handlers, &cfg, middlewares)
+
+	server, routerError := rest.New(
+		&cfg,
+		handlers,
+	)
 	if routerError != nil {
 		log.Println("routerError:", routerError)
 	}

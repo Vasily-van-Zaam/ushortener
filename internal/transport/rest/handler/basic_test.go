@@ -13,11 +13,27 @@ import (
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
 
-// /// mock.
+// import (
+// 	"bytes"
+// 	"context"
+// 	"errors"
+// 	"io"
+// 	"log"
+// 	"net/http"
+// 	"net/http/httptest"
+// 	"strings"
+// 	"testing"
+
+// 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+// 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
+// 	"github.com/go-chi/chi/v5"
+// 	"github.com/stretchr/testify/assert"
+// )
+
+// // /// mock.
 type ServiceMock struct {
 	core.AUTHService
 }
@@ -67,19 +83,24 @@ func (s *ServiceMock) APISetShorten(
 	return &core.ResponseAPIShorten{}, nil
 }
 
-func TestShortenerHandler_GetSetURL(t *testing.T) {
-	service := ServiceMock{}
+func Test_basicHandler_getURL(t *testing.T) {
 	type fields struct {
-		service handler.BasicService
+		Service *ServiceMock
+		Config  *core.Config
+	}
+	conf := &core.Config{
+		ServerAddress: "127.0.0.1:8080/",
+		BaseURL:       "http://localhost:8080/",
+	}
+	service := &ServiceMock{}
+	type args struct {
+		w *httptest.ResponseRecorder
+		r *http.Request
 	}
 	type want struct {
 		code        int
 		response    string
 		contentType string
-	}
-	type args struct {
-		w *httptest.ResponseRecorder
-		r *http.Request
 	}
 	tests := []struct {
 		name   string
@@ -87,11 +108,11 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		args   args
 		want   want
 	}{
-		// TODO: Add test cases.
 		{
 			name: "set short link 1: ",
 			fields: fields{
-				service: &service,
+				Service: service,
+				Config:  conf,
 			},
 			args: args{
 				w: httptest.NewRecorder(),
@@ -111,7 +132,8 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		{
 			name: "set short link 2: ",
 			fields: fields{
-				service: &service,
+				Service: service,
+				Config:  conf,
 			},
 			args: args{
 				w: httptest.NewRecorder(),
@@ -130,7 +152,8 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		{
 			name: "set short link empty post body: ",
 			fields: fields{
-				service: &service,
+				Service: service,
+				Config:  conf,
 			},
 			args: args{
 				w: httptest.NewRecorder(),
@@ -149,7 +172,8 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		{
 			name: "get short link 1: ",
 			fields: fields{
-				service: &service,
+				Service: service,
+				Config:  conf,
 			},
 			args: args{
 				w: httptest.NewRecorder(),
@@ -164,7 +188,8 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		{
 			name: "get short link 2: ",
 			fields: fields{
-				service: &service,
+				Service: service,
+				Config:  conf,
 			},
 			args: args{
 				w: httptest.NewRecorder(),
@@ -179,7 +204,8 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		{
 			name: "get error: not Found: ",
 			fields: fields{
-				service: &service,
+				Service: service,
+				Config:  conf,
 			},
 			args: args{
 				w: httptest.NewRecorder(),
@@ -193,21 +219,9 @@ func TestShortenerHandler_GetSetURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		cfg := core.Config{
-			ServerAddress: "127.0.0.1:8080/",
-			BaseURL:       "http://localhost:8080/",
-		}
-
 		t.Run(tt.name, func(t *testing.T) {
-			h := &handler.BasicHandler{
-				Service: tt.fields.service,
-				Config:  &cfg,
-			}
-			r := chi.NewRouter()
-			hs := handler.NewHandlers(h, nil)
-			hs.InitAPI(r)
-			r.ServeHTTP(tt.args.w, tt.args.r)
-
+			h := handler.New(tt.fields.Config, tt.fields.Service, nil)
+			h.ServeHTTP(tt.args.w, tt.args.r)
 			///////// chech response //////////
 			res := tt.args.w.Result()
 

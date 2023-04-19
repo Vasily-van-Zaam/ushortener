@@ -1,3 +1,4 @@
+// Serveice API
 package service
 
 import (
@@ -8,23 +9,31 @@ import (
 	"sync"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
 
+// Channel buffer for delete url.
 var BUF chan *core.BuferDeleteURL = make(chan *core.BuferDeleteURL, 1000)
 
+// Main struct API.
 type API struct {
 	storage Storage
 	config  *core.Config
+	shorter iShorter
 	core.AUTHService
 }
 
+// Create new service API.
 func NewAPI(conf *core.Config, s *Storage, auth *AUTHService) *API {
 	return &API{
 		*s,
 		conf,
+		shorter.NewShorter59(),
 		auth,
 	}
 }
+
+// Listeneer delete URL.
 func (s *API) BindBuferIds() {
 	// defer s.BindBuferIds()
 	for b := range BUF {
@@ -33,7 +42,8 @@ func (s *API) BindBuferIds() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err := s.storage.DeleteURLSBatch(buf.Ctx, buf.IDS, buf.User.ID)
+			ids := buf.UnConvertIDS()
+			err := s.storage.DeleteURLSBatch(buf.Ctx, ids, buf.User.ID)
 			if err != nil {
 				log.Println("DELETED ERROR", err)
 			}
@@ -43,6 +53,7 @@ func (s *API) BindBuferIds() {
 	}
 }
 
+// Set shorten URL.
 func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error) {
 	user := core.User{}
 
@@ -60,10 +71,11 @@ func (s *API) APISetShorten(ctx context.Context, request *core.RequestAPIShorten
 		return nil, err
 	}
 	return &core.ResponseAPIShorten{
-		Result: s.config.BaseURL + "/" + res,
+		Result: fmt.Sprint(s.config.BaseURL+"/", s.shorter.Convert(res)),
 	}, err
 }
 
+// Get list user  urls.
 func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error) {
 	user := core.User{}
 	err := user.SetUserIDFromContext(ctx)
@@ -79,7 +91,7 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 	for _, r := range res {
 		if r != nil {
 			resAPI = append(resAPI, &core.ResponseAPIUserURL{
-				ShortURL:    fmt.Sprint(s.config.BaseURL, "/", r.ID),
+				ShortURL:    fmt.Sprint(s.config.BaseURL, "/", r.ConverID()),
 				OriginalURL: r.Link,
 			})
 		}
@@ -88,6 +100,7 @@ func (s *API) APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, e
 	return resAPI, err
 }
 
+// Set list urls.
 func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPIShortenBatch) ([]*core.ResponseAPIShortenBatch, error) {
 	user := core.User{}
 	err := user.SetUserIDFromContext(ctx)
@@ -108,19 +121,21 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 	for i, r := range resDB {
 		res = append(res, &core.ResponseAPIShortenBatch{
 			CorrelationID: request[i].CorrelationID,
-			ShortURL:      fmt.Sprint(s.config.BaseURL, "/", r.ID),
+			ShortURL:      fmt.Sprint(s.config.BaseURL, "/", r.ConverID()),
 		})
 	}
 
 	return res, err
 }
 
+// Delete list urls by list id.
 func (s *API) APIDeleteUserURLS(ctx context.Context, ids []*string) error {
 	var user core.User
 	err := user.SetUserIDFromContext(ctx)
 	if err != nil {
 		return err
 	}
+	// Send to the channel for removal.
 	BUF <- &core.BuferDeleteURL{
 		User: &user,
 		Ctx:  ctx,

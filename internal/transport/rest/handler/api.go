@@ -1,3 +1,4 @@
+// Handlers API
 package handler
 
 import (
@@ -12,7 +13,8 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
-type APIService interface {
+// Implements Service.
+type apiService interface {
 	APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 	APISetShortenBatch(ctx context.Context,
 		request []*core.RequestAPIShortenBatch,
@@ -23,13 +25,14 @@ type APIService interface {
 	core.AUTHService
 }
 
-type APIHandler struct {
-	Service APIService
+// Api structure.
+type apiHandler struct {
+	Service apiService
 	Config  *core.Config
 }
 
-func NewAPI(s APIService, conf *core.Config) *APIHandler {
-	return &APIHandler{
+func newAPI(conf *core.Config, s apiService) *apiHandler {
+	return &apiHandler{
 		Service: s,
 		Config:  conf,
 	}
@@ -44,7 +47,7 @@ func NewAPI(s APIService, conf *core.Config) *APIHandler {
 // @Success		 200  {object} core.ResponseApiShorten
 // @Failure      400  {string} 	"error"
 // @Router       /api/shorten [post].
-func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
+func (h *apiHandler) apiSetShorten(w http.ResponseWriter, r *http.Request) {
 	service := h.Service
 
 	ctx := r.Context()
@@ -105,7 +108,7 @@ func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 // @Success		 200  {object} core.ResponseAPIUserURL
 // @Failure      400  {string} 	"error"
 // @Router       /api/user/urls [get].
-func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
+func (h *apiHandler) apiGetUserURLS(w http.ResponseWriter, r *http.Request) {
 	service := h.Service
 
 	res, errAPI := service.APIGetUserURLS(r.Context())
@@ -139,7 +142,7 @@ func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
 // @Success		 202
 // @Failure      400  {string} 	"error"
 // @Router       /api/user/urls [delete].
-func (h *APIHandler) APIDeleteUserURLS(w http.ResponseWriter, r *http.Request) {
+func (h *apiHandler) apiDeleteUserURLS(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
@@ -165,7 +168,7 @@ func (h *APIHandler) APIDeleteUserURLS(w http.ResponseWriter, r *http.Request) {
 
 // TODO дописать инструкциюы
 // @Router       /api/shorten/batch [post].
-func (h *APIHandler) APISetShortenBatch(w http.ResponseWriter, r *http.Request) {
+func (h *apiHandler) apiSetShortenBatch(w http.ResponseWriter, r *http.Request) {
 	service := h.Service
 
 	body, err := io.ReadAll(r.Body)

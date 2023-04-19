@@ -1,3 +1,4 @@
+// All project structurs.
 package core
 
 import (
@@ -5,16 +6,22 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
 
+// User structure.
 type UserData string
 
+// User data constant.
 const (
 	USERDATA UserData = "user_data"
 )
 
+// Link structure. For save in DB and returns to client.
 type Link struct {
 	ID        int    `db:"id" json:"id"`
 	Link      string `db:"link" json:"link"`
@@ -24,20 +31,32 @@ type Link struct {
 	Deleted   bool   `db:"deleted" json:"deleted"`
 }
 
+// Function covert ID number to string 59.
+func (l *Link) ConverID() string {
+	sh := shorter.NewShorter59()
+	id := sh.Convert(fmt.Sprint(l.ID))
+	return id
+}
+
+// Error conflict struct.
 type ErrConflict struct{}
 
+// Function error.Error().
 func (e *ErrConflict) Error() string {
 	return "conflict"
 }
 
+// Create new error conflict.
 func NewErrConflict() *ErrConflict {
 	return &ErrConflict{}
 }
 
+// User struct. For autorization data.
 type User struct {
 	ID string `db:"id" json:"id"`
 }
 
+// Set id user from context.
 func (u *User) SetUserIDFromContext(ctx context.Context) error {
 	v, ok := ctx.Value(USERDATA).(User)
 	if !ok {
@@ -47,28 +66,35 @@ func (u *User) SetUserIDFromContext(ctx context.Context) error {
 	return nil
 }
 
+// Request API Shorten.
 type RequestAPIShorten struct {
 	URL string `json:"url"`
 }
 
+// Response API Shorten.
 type ResponseAPIShorten struct {
 	Result string `json:"result"`
 }
 
+// Response urls user.
 type ResponseAPIUserURL struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
 
+// Request  url Batch user.
 type RequestAPIShortenBatch struct {
 	CorrelationID string `json:"correlation_id"`
 	OriginalURL   string `json:"original_url"`
 }
+
+// Response url Batch user.
 type ResponseAPIShortenBatch struct {
 	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
 
+// Main config struct.
 type Config struct {
 	ServerAddress    string `env:"SERVER_ADDRESS"`
 	BaseURL          string `env:"BASE_URL"`
@@ -80,6 +106,7 @@ type Config struct {
 	DataBaseDNS      string `env:"DATABASE_DSN"`
 }
 
+// Set default values config.
 func (c *Config) SetDefault() {
 	emptyVar := ""
 	if c.BaseURL == "" {
@@ -106,6 +133,7 @@ func (c *Config) SetDefault() {
 	flag.Parse()
 }
 
+// Logger response.
 func (c *Config) LogResponse(w http.ResponseWriter, r *http.Request, body any, status int) {
 	configByte, _ := json.Marshal(&c)
 	log.Print(
@@ -122,6 +150,8 @@ func (c *Config) LogResponse(w http.ResponseWriter, r *http.Request, body any, s
 		"# END LOG RESPONSE #", "\n",
 	)
 }
+
+// Logger request.
 func (c *Config) LogRequest(w http.ResponseWriter, r *http.Request, body any) {
 	configByte, _ := json.Marshal(&c)
 	log.Print(
@@ -137,8 +167,20 @@ func (c *Config) LogRequest(w http.ResponseWriter, r *http.Request, body any) {
 	)
 }
 
+// Struct for bufer deleete URL.
 type BuferDeleteURL struct {
 	IDS  []*string
 	User *User
 	Ctx  context.Context
+}
+
+// Un Converter string59 to in.
+func (b *BuferDeleteURL) UnConvertIDS() []*string {
+	sh := shorter.NewShorter59()
+	ids := make([]*string, len(b.IDS))
+	for i, id := range b.IDS {
+		uid := sh.UnConvert(*id)
+		ids[i] = &uid
+	}
+	return ids
 }

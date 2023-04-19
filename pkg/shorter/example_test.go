@@ -7,7 +7,7 @@ import (
 )
 
 func Example() {
-	sh2 := shorter.New([]string{
+	sh2, _ := shorter.New([]string{
 		"0", "1",
 	})
 	out1 := sh2.Convert("123456789")
@@ -16,7 +16,7 @@ func Example() {
 	out2 := sh2.UnConvert(out1)
 	fmt.Println(out2)
 
-	sh3 := shorter.New([]string{
+	sh3, _ := shorter.New([]string{
 		"A", "B", "C",
 	})
 	out3 := sh3.Convert("123456789")

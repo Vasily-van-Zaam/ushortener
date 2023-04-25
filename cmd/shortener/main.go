@@ -18,6 +18,12 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/middleware"
 )
 
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
+)
+
 func main() {
 	docs.SwaggerInfo.Title = "Shortener API"
 	docs.SwaggerInfo.Description = "This is a link shortener server."

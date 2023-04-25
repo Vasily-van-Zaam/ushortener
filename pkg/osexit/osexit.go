@@ -16,6 +16,7 @@ var Analyzer = &analysis.Analyzer{
 	Run:  run,
 }
 
+// Const text docs.
 const Doc = `
 	check os.Exit call in main
 	//
@@ -32,6 +33,7 @@ const Doc = `
 	}
 `
 
+// Looking for a function call.
 func dedect(pass *analysis.Pass, e *ast.CallExpr) {
 	selectorExpr, ok := e.Fun.(*ast.SelectorExpr)
 	if !ok {
@@ -48,6 +50,7 @@ func dedect(pass *analysis.Pass, e *ast.CallExpr) {
 	}
 }
 
+// Start Analyzer.
 func run(pass *analysis.Pass) (any, error) {
 	for _, f := range pass.Files {
 		if f.Name.Name != "main" {

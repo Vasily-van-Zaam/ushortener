@@ -22,9 +22,9 @@ import (
 // For example:
 // go run -ldflags "-X main.buildVersion=v2.1.1  -X 'main.buildDate=2023-04-26'" ./cmd/shortener/main.go.
 var (
-	buildVersion string = "N/A"
-	buildDate    string = "N/A"
-	buildCommit  string = "N/A"
+	buildVersion = "N/A"
+	buildDate    = "N/A"
+	buildCommit  = "N/A"
 )
 
 func main() {

@@ -15,11 +15,26 @@ type shorter struct {
 }
 
 // New create universal.
-func New(symbols []string) *shorter {
+func New(symbols []string) (*shorter, error) {
+	if len(symbols) == 0 {
+		return nil, fmt.Errorf("no symbols")
+	}
+	if len(symbols) < 2 {
+		return nil, fmt.Errorf("at least two characters")
+	}
+	checkList := make([]string, 0, len(symbols))
+	for _, s := range symbols {
+		for _, c := range checkList {
+			if s == c {
+				return nil, fmt.Errorf("characters must be non-repetitive")
+			}
+		}
+		checkList = append(checkList, s)
+	}
 	return &shorter{
 		symbols: symbols,
 		bit:     int64(len(symbols)),
-	}
+	}, nil
 }
 
 // Create converter int to string59.

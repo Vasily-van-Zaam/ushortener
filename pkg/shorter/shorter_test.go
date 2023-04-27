@@ -100,9 +100,14 @@ func Test_shorter_Some_Convert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := shorter.New([]string{
-				"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+			s, err := shorter.New([]string{
+				// "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+				"-", "*",
 			})
+			if err != nil {
+				t.Error(err)
+				return
+			}
 			got := s.Convert(tt.args.id)
 			got1 := s.UnConvert(got)
 			log.Println(got, got1)

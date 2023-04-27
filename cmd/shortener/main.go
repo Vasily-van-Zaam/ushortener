@@ -18,6 +18,15 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/middleware"
 )
 
+// These variables are configured using ldflags.
+// For example:
+// go run -ldflags "-X main.buildVersion=v2.1.1  -X 'main.buildDate=2023-04-26'" ./cmd/shortener/main.go.
+var (
+	buildVersion = "N/A"
+	buildDate    = "N/A"
+	buildCommit  = "N/A"
+)
+
 func main() {
 	docs.SwaggerInfo.Title = "Shortener API"
 	docs.SwaggerInfo.Description = "This is a link shortener server."
@@ -77,6 +86,7 @@ func main() {
 		log.Println("routerError:", routerError)
 	}
 
+	log.Printf("\nBuild version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
 	errorServer := server.Run(cfg.ServerAddress)
 	if errorServer != nil {
 		log.Println("errorServer:", errorServer)

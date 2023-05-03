@@ -104,6 +104,7 @@ type Config struct {
 	ExpiresDayCookie int64  `env:"EXPIRES_DAY_COOKIE" envDefault:"365"`
 	SecretKey        string `env:"SECRET_KEY" envDefault:"secretkey"`
 	DataBaseDNS      string `env:"DATABASE_DSN"`
+	EnableHTTPS      string `env:"ENABLE_HTTPS"`
 }
 
 // Set default values config.
@@ -128,6 +129,11 @@ func (c *Config) SetDefault() {
 		flag.StringVar(&c.DataBaseDNS, "d", "", "path DB")
 	} else {
 		flag.StringVar(&emptyVar, "d", "", "path DB")
+	}
+	if c.EnableHTTPS == "" {
+		flag.StringVar(&c.EnableHTTPS, "s", "", "https on")
+	} else {
+		flag.StringVar(&emptyVar, "s", "", "https on")
 	}
 
 	flag.Parse()

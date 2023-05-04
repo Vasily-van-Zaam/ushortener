@@ -109,6 +109,7 @@ type Config struct {
 	ConfigPath       string `env:"CONFIG"`
 }
 
+// Load config from file.
 func (c *Config) UpdateFromJSON() {
 	file, errFile := os.ReadFile(c.ConfigPath)
 	if errFile != nil {
@@ -120,6 +121,7 @@ func (c *Config) UpdateFromJSON() {
 	}
 }
 
+// For list flags.
 type flagVars struct {
 	name      string
 	value     string
@@ -163,8 +165,6 @@ func (c *Config) SetDefault() {
 	}
 
 	flag.Parse()
-	log.Print(c)
-	// }
 }
 
 // Logger response.

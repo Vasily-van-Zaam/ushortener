@@ -112,11 +112,11 @@ type Config struct {
 func (c *Config) UpdateFromJSON() {
 	file, errFile := os.ReadFile(c.ConfigPath)
 	if errFile != nil {
-		log.Fatal(errFile)
+		log.Println(errFile)
 	}
 	err := json.Unmarshal(file, c)
 	if err != nil {
-		log.Fatal(errFile)
+		log.Println(errFile)
 	}
 }
 

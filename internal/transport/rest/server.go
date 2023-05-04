@@ -38,7 +38,7 @@ func (s *server) Run(addresPort string) error {
 		ReadHeaderTimeout: time.Duration(s.config.ServerTimeout) * time.Second,
 		Handler:           s.router,
 	}
-	if s.config.EnableHTTPS != "" {
+	if !s.config.EnableHTTPS {
 		certManager := &autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist("ushorten.ru"),

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
@@ -96,47 +97,74 @@ type ResponseAPIShortenBatch struct {
 
 // Main config struct.
 type Config struct {
-	ServerAddress    string `env:"SERVER_ADDRESS"`
-	BaseURL          string `env:"BASE_URL"`
-	Filestore        string `env:"FILE_STORAGE_PATH"`
+	ServerAddress    string `json:"server_address" env:"SERVER_ADDRESS"`
+	BaseURL          string `json:"base_url" env:"BASE_URL"`
+	Filestore        string `json:"file_storage_path" env:"FILE_STORAGE_PATH"`
 	SqliteDB         string `env:"SQLITE_DB"`
 	ServerTimeout    int64  `env:"SERVER_TIMEOUT" envDefault:"100"`
 	ExpiresDayCookie int64  `env:"EXPIRES_DAY_COOKIE" envDefault:"365"`
 	SecretKey        string `env:"SECRET_KEY" envDefault:"secretkey"`
-	DataBaseDNS      string `env:"DATABASE_DSN"`
-	EnableHTTPS      string `env:"ENABLE_HTTPS"`
+	DataBaseDNS      string `json:"database_dsn" env:"DATABASE_DSN"`
+	EnableHTTPS      bool   `json:"enable_https" env:"ENABLE_HTTPS"`
+	ConfigPath       string `env:"CONFIG"`
+}
+
+func (c *Config) UpdateFromJSON() {
+	file, errFile := os.ReadFile(c.ConfigPath)
+	if errFile != nil {
+		log.Fatal(errFile)
+	}
+	err := json.Unmarshal(file, c)
+	if err != nil {
+		log.Fatal(errFile)
+	}
+}
+
+type flagVars struct {
+	name      string
+	value     string
+	valueBool bool
+	usage     string
+	field     *string
+	fieldBool *bool
 }
 
 // Set default values config.
 func (c *Config) SetDefault() {
+	flags := []flagVars{
+		{name: "c", usage: "config path use as: -c ./config.js", field: &c.ConfigPath},
+		{name: "config", usage: "use as: -config ./config.js", field: &c.ConfigPath},
+		{name: "b", usage: "use as: -b http://example.com", value: "http://localhost:8080", field: &c.BaseURL},
+		{name: "a", usage: "use as: -a 127.0.0.1:8080 or localhost:8080", value: "127.0.0.1:8080", field: &c.ServerAddress},
+		{name: "f", usage: "use as: -f ./store.csv", field: &c.Filestore},
+		{name: "d", usage: "path DB use as: -d ", field: &c.DataBaseDNS},
+		{name: "s", usage: "enabled http, use as: -s on", fieldBool: &c.EnableHTTPS},
+	}
 	emptyVar := ""
-	if c.BaseURL == "" {
-		flag.StringVar(&c.BaseURL, "b", "http://localhost:8080", "use as http://example.com")
-	} else {
-		flag.StringVar(&emptyVar, "b", "http://localhost:8080", "use as http://example.com")
-	}
-	if c.ServerAddress == "" {
-		flag.StringVar(&c.ServerAddress, "a", "127.0.0.1:8080", "use as 127.0.0.1:8080 or localhost:8080")
-	} else {
-		flag.StringVar(&emptyVar, "a", "127.0.0.1:8080", "use as 127.0.0.1:8080 or localhost:8080")
-	}
-	if c.Filestore == "" {
-		flag.StringVar(&c.Filestore, "f", "./store", "path to file ./store.csv")
-	} else {
-		flag.StringVar(&emptyVar, "f", "./store", "path to file ./store.csv or other")
-	}
-	if c.DataBaseDNS == "" {
-		flag.StringVar(&c.DataBaseDNS, "d", "", "path DB")
-	} else {
-		flag.StringVar(&emptyVar, "d", "", "path DB")
-	}
-	if c.EnableHTTPS == "" {
-		flag.StringVar(&c.EnableHTTPS, "s", "", "https on")
-	} else {
-		flag.StringVar(&emptyVar, "s", "", "https on")
+	emptyBoolVar := false
+	for _, f := range flags {
+		switch {
+		case f.field == nil:
+			if !*f.fieldBool {
+				flag.BoolVar(f.fieldBool, f.name, f.valueBool, f.usage)
+			} else {
+				flag.BoolVar(&emptyBoolVar, f.name, f.valueBool, f.usage)
+			}
+		case f.fieldBool == nil:
+			if *f.field == "" {
+				flag.StringVar(f.field, f.name, f.value, f.usage)
+			} else {
+				flag.StringVar(&emptyVar, f.name, f.value, f.usage)
+			}
+			if c.ConfigPath != "" && f.name == "c" || f.name == "config" {
+				c.UpdateFromJSON()
+			}
+		}
 	}
 
 	flag.Parse()
+	log.Print(c)
+	// }
 }
 
 // Logger response.

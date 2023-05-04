@@ -121,47 +121,47 @@ func (c *Config) UpdateFromJSON() {
 	}
 }
 
-// For list flags.
-type flagVars struct {
-	name      string
-	value     string
-	valueBool bool
-	usage     string
-	field     *string
-	fieldBool *bool
-}
-
 // Set default values config.
 func (c *Config) SetDefault() {
-	flags := []flagVars{
-		{name: "c", usage: "config path use as: -c ./config.js", field: &c.ConfigPath},
-		{name: "config", usage: "use as: -config ./config.js", field: &c.ConfigPath},
-		{name: "b", usage: "use as: -b http://example.com", value: "http://localhost:8080", field: &c.BaseURL},
-		{name: "a", usage: "use as: -a 127.0.0.1:8080 or localhost:8080", value: "127.0.0.1:8080", field: &c.ServerAddress},
-		{name: "f", usage: "use as: -f ./store.csv", field: &c.Filestore},
-		{name: "d", usage: "path DB use as: -d ", field: &c.DataBaseDNS},
-		{name: "s", usage: "enabled http, use as: -s on", fieldBool: &c.EnableHTTPS},
-	}
 	emptyVar := ""
 	emptyBoolVar := false
-	for _, f := range flags {
-		switch {
-		case f.field == nil:
-			if !*f.fieldBool {
-				flag.BoolVar(f.fieldBool, f.name, f.valueBool, f.usage)
-			} else {
-				flag.BoolVar(&emptyBoolVar, f.name, f.valueBool, f.usage)
-			}
-		case f.fieldBool == nil:
-			if *f.field == "" {
-				flag.StringVar(f.field, f.name, f.value, f.usage)
-			} else {
-				flag.StringVar(&emptyVar, f.name, f.value, f.usage)
-			}
-			if c.ConfigPath != "" && f.name == "c" || f.name == "config" {
-				c.UpdateFromJSON()
-			}
+	if c.ConfigPath == "" {
+		flag.StringVar(&c.ConfigPath, "c", "", "config file")
+		if c.ConfigPath == "" {
+			flag.StringVar(&c.ConfigPath, "config", "", "config file")
 		}
+	} else {
+		flag.StringVar(&emptyVar, "c", "", "config file")
+		flag.StringVar(&emptyVar, "config", "", "config file")
+	}
+	if c.BaseURL == "" {
+		flag.StringVar(&c.BaseURL, "b", "http://localhost:8080", "use as http://example.com")
+	} else {
+		flag.StringVar(&emptyVar, "b", "http://localhost:8080", "use as http://example.com")
+	}
+	if c.ServerAddress == "" {
+		flag.StringVar(&c.ServerAddress, "a", "127.0.0.1:8080", "use as 127.0.0.1:8080 or localhost:8080")
+	} else {
+		flag.StringVar(&emptyVar, "a", "127.0.0.1:8080", "use as 127.0.0.1:8080 or localhost:8080")
+	}
+	if c.Filestore == "" {
+		flag.StringVar(&c.Filestore, "f", "./store", "path to file ./store.csv")
+	} else {
+		flag.StringVar(&emptyVar, "f", "./store", "path to file ./store.csv or other")
+	}
+	if c.DataBaseDNS == "" {
+		flag.StringVar(&c.DataBaseDNS, "d", "", "path DB")
+	} else {
+		flag.StringVar(&emptyVar, "d", "", "path DB")
+	}
+
+	if !c.EnableHTTPS {
+		flag.BoolVar(&c.EnableHTTPS, "s", false, "enable https")
+	} else {
+		flag.BoolVar(&emptyBoolVar, "s", false, "enable https")
+	}
+	if c.ConfigPath != "" {
+		c.UpdateFromJSON()
 	}
 
 	flag.Parse()

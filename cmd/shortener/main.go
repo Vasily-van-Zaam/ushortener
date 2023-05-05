@@ -92,10 +92,12 @@ func main() {
 	log.Printf("\nBuild version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	<-ctx.Done()
 
-	errorServer := server.Run(cfg.ServerAddress)
-	if errorServer != nil {
-		log.Println("errorServer:", errorServer)
-	}
+	go func() {
+		errorServer := server.Run(cfg.ServerAddress)
+		if errorServer != nil {
+			log.Println("errorServer:", errorServer)
+		}
+	}()
+	<-ctx.Done()
 }

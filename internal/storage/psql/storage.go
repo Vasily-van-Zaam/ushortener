@@ -253,6 +253,30 @@ func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID strin
 	return nil
 }
 
+// Get statistics count users, count urls.
+func (s *Store) GetStats(ctx context.Context) (*core.Stats, error) {
+	row := s.db.QueryRow(ctx, `--sql
+	select count(link) from links`,
+	)
+	countUrls := 0
+	err := row.Scan(&countUrls)
+	if err != nil {
+		return nil, err
+	}
+	row = s.db.QueryRow(ctx, `--sql
+	select count(distinct uuid) from links;`,
+	)
+	countUsers := 0
+	err = row.Scan(&countUsers)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Stats{
+		Urls:  countUrls,
+		Users: countUrls,
+	}, nil
+}
+
 // Close store.
 func (s *Store) Close() error {
 	s.db.Close()

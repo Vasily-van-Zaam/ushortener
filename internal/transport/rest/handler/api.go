@@ -21,6 +21,7 @@ type apiService interface {
 	) ([]*core.ResponseAPIShortenBatch, error)
 	APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error)
 	APIDeleteUserURLS(ctx context.Context, ids []*string) error
+	APIGetStats(r *http.Request) (*core.Stats, error)
 
 	core.AUTHService
 }
@@ -207,6 +208,33 @@ func (h *apiHandler) apiSetShortenBatch(w http.ResponseWriter, r *http.Request) 
 	}
 
 	response, _ := json.Marshal(res)
+	_, err = w.Write(response)
+	if err != nil {
+		log.Println(err)
+	}
+	h.Config.LogResponse(w, r, string(response), http.StatusCreated)
+}
+
+// TODO: add swager
+// Gets statistics urls, users.
+func (h *apiHandler) apiGetStats(w http.ResponseWriter, r *http.Request) {
+	var (
+		resp *core.Stats
+		err  error
+	)
+
+	resp, err = h.Service.APIGetStats(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		if err.Error() == "403" {
+			w.WriteHeader(http.StatusForbidden)
+		}
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	response, _ := json.Marshal(resp)
 	_, err = w.Write(response)
 	if err != nil {
 		log.Println(err)

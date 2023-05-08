@@ -107,6 +107,7 @@ type Config struct {
 	DataBaseDNS      string `json:"database_dsn" env:"DATABASE_DSN"`
 	EnableHTTPS      bool   `json:"enable_https" env:"ENABLE_HTTPS"`
 	ConfigPath       string `env:"CONFIG"`
+	TrustedSubnet    string `env:"TRUSTED_SUBNET"`
 }
 
 // Load config from file.
@@ -153,6 +154,11 @@ func (c *Config) SetDefault() {
 		flag.StringVar(&c.DataBaseDNS, "d", "", "path DB")
 	} else {
 		flag.StringVar(&emptyVar, "d", "", "path DB")
+	}
+	if c.TrustedSubnet == "" {
+		flag.StringVar(&c.TrustedSubnet, "t", "", "set trusted subnet")
+	} else {
+		flag.StringVar(&emptyVar, "t", "", "set trusted subnet")
 	}
 
 	if !c.EnableHTTPS {
@@ -208,7 +214,18 @@ type BuferDeleteURL struct {
 	Ctx  context.Context
 }
 
-// Un Converter string59 to in.
+// Un Converter string59 to int.
+//
+/* Example result:
+A1Rx4jH39W to 95546546565465465 */
+/* list symbols:
+"$", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+"a", "A", "b", "B", "c", "C", "d", "D", "e", "E",
+"f", "F", "g", "G", "h", "H", "i", "j", "J", "k",
+"K", "L", "m", "M", "n", "N", "o", "p", "P", "q",
+"Q", "r", "R", "s", "S", "t", "T", "u", "U", "v",
+"V", "w", "W", "x", "X", "y", "Y", "z", "Z",.
+*/
 func (b *BuferDeleteURL) UnConvertIDS() []*string {
 	sh := shorter.NewShorter59()
 	ids := make([]*string, len(b.IDS))
@@ -217,4 +234,10 @@ func (b *BuferDeleteURL) UnConvertIDS() []*string {
 		ids[i] = &uid
 	}
 	return ids
+}
+
+// Statistics service, count urls, count users.
+type Stats struct {
+	Urls  int `json:"urls"`
+	Users int `json:"users"`
 }

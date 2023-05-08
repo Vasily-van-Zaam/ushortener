@@ -30,9 +30,6 @@ func New(conf *core.Config, b basicService, a apiService, m ...func(http.Handler
 	r.Get("/api/user/urls", api.apiGetUserURLS)
 	r.Delete("/api/user/urls", api.apiDeleteUserURLS)
 	r.Post("/api/shorten/batch", api.apiSetShortenBatch)
+	r.Get("/api/internal/stats", api.apiGetStats)
 	return r
-	// return &handlers{
-	// 	basic: basic,
-	// 	api:   api,
-	// }
 }

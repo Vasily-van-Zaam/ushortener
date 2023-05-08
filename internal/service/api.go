@@ -42,8 +42,11 @@ func (s *API) APIGetStats(r *http.Request) (*core.Stats, error) {
 	_, checkIPNet, _ := net.ParseCIDR(checkIP)
 
 	_, ipNet, _ := net.ParseCIDR(subnet)
-	log.Println(checkIPNet)
-	log.Println(checkIPNet, ipNet, checkIPNet.IP.Equal(ipNet.IP))
+
+	if checkIPNet == nil {
+		// return s.storage.GetStats(r.Context())
+		return nil, errors.New("403")
+	}
 	if checkIPNet.IP.Equal(ipNet.IP) {
 		return s.storage.GetStats(r.Context())
 	}

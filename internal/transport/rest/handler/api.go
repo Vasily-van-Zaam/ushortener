@@ -225,11 +225,11 @@ func (h *apiHandler) apiGetStats(w http.ResponseWriter, r *http.Request) {
 
 	resp, err = h.Service.APIGetStats(r)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		if err.Error() == "403" {
 			w.WriteHeader(http.StatusForbidden)
+			return
 		}
-
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

@@ -273,7 +273,7 @@ func (s *Store) GetStats(ctx context.Context) (*core.Stats, error) {
 	}
 	return &core.Stats{
 		Urls:  countUrls,
-		Users: countUrls,
+		Users: countUsers,
 	}, nil
 }
 

@@ -160,7 +160,7 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 }
 
 // Delete list urls by list id.
-func (s *API) APIDeleteUserURLS(ctx context.Context, ids []*string) error {
+func (s *API) APIDeleteUserURLS(ctx context.Context, ids []string) error {
 	var user core.User
 	err := user.SetUserIDFromContext(ctx)
 	if err != nil {

@@ -209,7 +209,7 @@ func (c *Config) LogRequest(w http.ResponseWriter, r *http.Request, body any) {
 
 // Struct for bufer deleete URL.
 type BuferDeleteURL struct {
-	IDS  []*string
+	IDS  []string
 	User *User
 	Ctx  context.Context
 }
@@ -230,7 +230,7 @@ func (b *BuferDeleteURL) UnConvertIDS() []*string {
 	sh := shorter.NewShorter59()
 	ids := make([]*string, len(b.IDS))
 	for i, id := range b.IDS {
-		uid := sh.UnConvert(*id)
+		uid := sh.UnConvert(id)
 		ids[i] = &uid
 	}
 	return ids

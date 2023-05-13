@@ -91,7 +91,7 @@ message PingResponse {
   string error = 1;
 }
 
-service GRPCServer {
+service GRPC {
   rpc GetBaseURL(ShortUrlRequest) returns (UrlResponse);
   rpc Ping(GetPingRequest) returns (PingResponse);
 

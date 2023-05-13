@@ -25,28 +25,61 @@ type Service interface {
 	APIGetStats(r *http.Request) (*core.Stats, error)
 
 	GetURL(ctx context.Context, link string) (string, error)
-	SetURL(ctx context.Context, link string) (string, error)
 	Ping(ctx context.Context) error
 	core.AUTHService
 }
 
 type server struct {
-	config *core.Config
+	UnimplementedGRPCServer
+	service Service
+	config  *core.Config
 }
 
 // DeleteUserURLS implements GRPCServerServer.
-func (*server) DeleteUserURLS(context.Context, *DeleteUserURLSRequest) (*DeleteUserURLSResponse, error) {
-	panic("unimplemented")
+func (srv *server) DeleteUserURLS(ctx context.Context, req *DeleteUserURLSRequest) (*DeleteUserURLSResponse, error) {
+	list := make([]*string, len(req.Urls))
+	for i, u := range req.Urls {
+		url := u
+		list[i] = &url
+	}
+	err := srv.service.APIDeleteUserURLS(ctx, list)
+	if err != nil {
+		return &DeleteUserURLSResponse{
+			Error: err.Error(),
+		}, err
+	}
+	return &DeleteUserURLSResponse{
+		Error: "",
+	}, nil
 }
 
 // GetBaseURL implements GRPCServerServer.
-func (*server) GetBaseURL(context.Context, *ShortUrlRequest) (*UrlResponse, error) {
-	panic("unimplemented")
+func (srv *server) GetBaseURL(ctx context.Context, req *ShortUrlRequest) (*UrlResponse, error) {
+	url, err := srv.service.GetURL(ctx, req.ShortUrl)
+	if err != nil {
+		return nil, err
+	}
+	return &UrlResponse{
+		Result: url,
+	}, nil
 }
 
 // GetStats implements GRPCServerServer.
-func (*server) GetStats(context.Context, *GetStatsRequest) (*StatsResponse, error) {
-	panic("unimplemented")
+func (srv *server) GetStats(ctx context.Context, req *GetStatsRequest) (*StatsResponse, error) {
+	haderXReal := http.Header{}
+	haderXReal.Add("X-Real-IP", req.Ip)
+	r := &http.Request{
+		Header: haderXReal,
+	}
+
+	stats, err := srv.service.APIGetStats(r)
+	if err != nil {
+		return nil, err
+	}
+	return &StatsResponse{
+		Urls:  int32(stats.Urls),
+		Users: int32(stats.Users),
+	}, nil
 }
 
 // GetUserURLS implements GRPCServerServer.
@@ -69,11 +102,6 @@ func (*server) SetUrls(context.Context, *ShortenBatchRequest) (*ShortenBatchRequ
 	panic("unimplemented")
 }
 
-// mustEmbedUnimplementedGRPCServerServer implements GRPCServerServer.
-func (*server) mustEmbedUnimplementedGRPCServerServer() {
-	panic("unimplemented")
-}
-
 // Run implements runner.
 func (srv *server) Run(addresPort string) error {
 	listen, err := net.Listen("tcp", addresPort)
@@ -82,13 +110,14 @@ func (srv *server) Run(addresPort string) error {
 	}
 	s := grpc.NewServer()
 
-	RegisterGRPCServerServer(s, srv)
+	RegisterGRPCServer(s, srv)
 	return s.Serve(listen)
 }
 
 // Create server.
-func New(conf *core.Config) runner {
+func New(conf *core.Config, s Service) runner {
 	return &server{
-		config: conf,
+		config:  conf,
+		service: s,
 	}
 }

@@ -19,7 +19,7 @@ type apiService interface {
 	APISetShortenBatch(ctx context.Context,
 		request []*core.RequestAPIShortenBatch) ([]*core.ResponseAPIShortenBatch, error)
 	APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error)
-	APIDeleteUserURLS(ctx context.Context, ids []*string) error
+	APIDeleteUserURLS(ctx context.Context, ids []string) error
 	APIGetStats(r *http.Request) (*core.Stats, error)
 
 	core.AUTHService
@@ -149,7 +149,7 @@ func (h *apiHandler) apiDeleteUserURLS(w http.ResponseWriter, r *http.Request) {
 		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
-	request := make([]*string, 0)
+	request := make([]string, 0)
 	err = json.Unmarshal(body, &request)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)

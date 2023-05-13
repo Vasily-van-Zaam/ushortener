@@ -17,8 +17,7 @@ import (
 type apiService interface {
 	APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 	APISetShortenBatch(ctx context.Context,
-		request []*core.RequestAPIShortenBatch,
-	) ([]*core.ResponseAPIShortenBatch, error)
+		request []*core.RequestAPIShortenBatch) ([]*core.ResponseAPIShortenBatch, error)
 	APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error)
 	APIDeleteUserURLS(ctx context.Context, ids []*string) error
 	APIGetStats(r *http.Request) (*core.Stats, error)

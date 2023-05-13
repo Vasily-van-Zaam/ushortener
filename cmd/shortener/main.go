@@ -16,6 +16,7 @@ import (
 	filestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/file"
 	memorystore "github.com/Vasily-van-Zaam/ushortener/internal/storage/memory"
 	"github.com/Vasily-van-Zaam/ushortener/internal/storage/psql"
+	gshort "github.com/Vasily-van-Zaam/ushortener/internal/transport/grpc"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/middleware"
@@ -85,6 +86,8 @@ func main() {
 		&cfg,
 		handlers,
 	)
+
+	grpcServer := gshort.New(&cfg, apiService, basicService)
 	if routerError != nil {
 		log.Println("routerError:", routerError)
 	}
@@ -99,5 +102,14 @@ func main() {
 			log.Println("errorServer:", errorServer)
 		}
 	}()
+
+	go func() {
+		const grpcAddress = ":3200"
+		grpcErr := grpcServer.Run(grpcAddress)
+		if grpcErr != nil {
+			log.Println("grpc:", grpcErr)
+		}
+	}()
+
 	<-ctx.Done()
 }

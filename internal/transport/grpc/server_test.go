@@ -183,9 +183,9 @@ func Test_server_GetStats(t *testing.T) {
 			}
 			defer conn.Close()
 			c := NewGrpcClient(conn)
-			ctx := context.Background()
+
 			md := metadata.New(map[string]string{"token": "1234"})
-			ctx = metadata.NewOutgoingContext(context.Background(), md)
+			ctx := metadata.NewOutgoingContext(context.Background(), md)
 			got, got1 := c.GetStats(ctx, &GetStatsRequest{})
 			log.Println(got, got1)
 			if (err != nil) != tt.wantErr {

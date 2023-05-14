@@ -70,7 +70,6 @@ message DeleteUserURLSResponse {
 // #request
 // Get Statistics 
 message GetStatsRequest {
-  string ip = 1;
 } 
 
 // #response
@@ -91,7 +90,7 @@ message PingResponse {
   string error = 1;
 }
 
-service GRPC {
+service Grpc {
   rpc GetBaseURL(ShortUrlRequest) returns (UrlResponse);
   rpc Ping(GetPingRequest) returns (PingResponse);
 

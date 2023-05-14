@@ -21,19 +21,19 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	GRPC_GetBaseURL_FullMethodName     = "/grpc.gshort.GRPC/GetBaseURL"
-	GRPC_Ping_FullMethodName           = "/grpc.gshort.GRPC/Ping"
-	GRPC_SetURL_FullMethodName         = "/grpc.gshort.GRPC/SetURL"
-	GRPC_SetUrls_FullMethodName        = "/grpc.gshort.GRPC/SetUrls"
-	GRPC_GetUserURLS_FullMethodName    = "/grpc.gshort.GRPC/GetUserURLS"
-	GRPC_DeleteUserURLS_FullMethodName = "/grpc.gshort.GRPC/DeleteUserURLS"
-	GRPC_GetStats_FullMethodName       = "/grpc.gshort.GRPC/GetStats"
+	Grpc_GetBaseURL_FullMethodName     = "/grpc.gshort.Grpc/GetBaseURL"
+	Grpc_Ping_FullMethodName           = "/grpc.gshort.Grpc/Ping"
+	Grpc_SetURL_FullMethodName         = "/grpc.gshort.Grpc/SetURL"
+	Grpc_SetUrls_FullMethodName        = "/grpc.gshort.Grpc/SetUrls"
+	Grpc_GetUserURLS_FullMethodName    = "/grpc.gshort.Grpc/GetUserURLS"
+	Grpc_DeleteUserURLS_FullMethodName = "/grpc.gshort.Grpc/DeleteUserURLS"
+	Grpc_GetStats_FullMethodName       = "/grpc.gshort.Grpc/GetStats"
 )
 
-// GRPCClient is the client API for GRPC service.
+// GrpcClient is the client API for Grpc service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GRPCClient interface {
+type GrpcClient interface {
 	GetBaseURL(ctx context.Context, in *ShortUrlRequest, opts ...grpc.CallOption) (*UrlResponse, error)
 	Ping(ctx context.Context, in *GetPingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 	SetURL(ctx context.Context, in *UrlRequest, opts ...grpc.CallOption) (*UrlResponse, error)
@@ -43,81 +43,81 @@ type GRPCClient interface {
 	GetStats(ctx context.Context, in *GetStatsRequest, opts ...grpc.CallOption) (*StatsResponse, error)
 }
 
-type gRPCClient struct {
+type grpcClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGRPCClient(cc grpc.ClientConnInterface) GRPCClient {
-	return &gRPCClient{cc}
+func NewGrpcClient(cc grpc.ClientConnInterface) GrpcClient {
+	return &grpcClient{cc}
 }
 
-func (c *gRPCClient) GetBaseURL(ctx context.Context, in *ShortUrlRequest, opts ...grpc.CallOption) (*UrlResponse, error) {
+func (c *grpcClient) GetBaseURL(ctx context.Context, in *ShortUrlRequest, opts ...grpc.CallOption) (*UrlResponse, error) {
 	out := new(UrlResponse)
-	err := c.cc.Invoke(ctx, GRPC_GetBaseURL_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Grpc_GetBaseURL_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gRPCClient) Ping(ctx context.Context, in *GetPingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+func (c *grpcClient) Ping(ctx context.Context, in *GetPingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	out := new(PingResponse)
-	err := c.cc.Invoke(ctx, GRPC_Ping_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Grpc_Ping_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gRPCClient) SetURL(ctx context.Context, in *UrlRequest, opts ...grpc.CallOption) (*UrlResponse, error) {
+func (c *grpcClient) SetURL(ctx context.Context, in *UrlRequest, opts ...grpc.CallOption) (*UrlResponse, error) {
 	out := new(UrlResponse)
-	err := c.cc.Invoke(ctx, GRPC_SetURL_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Grpc_SetURL_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gRPCClient) SetUrls(ctx context.Context, in *ShortenBatchRequest, opts ...grpc.CallOption) (*ShortenBatchRequest, error) {
+func (c *grpcClient) SetUrls(ctx context.Context, in *ShortenBatchRequest, opts ...grpc.CallOption) (*ShortenBatchRequest, error) {
 	out := new(ShortenBatchRequest)
-	err := c.cc.Invoke(ctx, GRPC_SetUrls_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Grpc_SetUrls_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gRPCClient) GetUserURLS(ctx context.Context, in *GetUserURLSRequest, opts ...grpc.CallOption) (*UserUrlsResponse, error) {
+func (c *grpcClient) GetUserURLS(ctx context.Context, in *GetUserURLSRequest, opts ...grpc.CallOption) (*UserUrlsResponse, error) {
 	out := new(UserUrlsResponse)
-	err := c.cc.Invoke(ctx, GRPC_GetUserURLS_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Grpc_GetUserURLS_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gRPCClient) DeleteUserURLS(ctx context.Context, in *DeleteUserURLSRequest, opts ...grpc.CallOption) (*DeleteUserURLSResponse, error) {
+func (c *grpcClient) DeleteUserURLS(ctx context.Context, in *DeleteUserURLSRequest, opts ...grpc.CallOption) (*DeleteUserURLSResponse, error) {
 	out := new(DeleteUserURLSResponse)
-	err := c.cc.Invoke(ctx, GRPC_DeleteUserURLS_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Grpc_DeleteUserURLS_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gRPCClient) GetStats(ctx context.Context, in *GetStatsRequest, opts ...grpc.CallOption) (*StatsResponse, error) {
+func (c *grpcClient) GetStats(ctx context.Context, in *GetStatsRequest, opts ...grpc.CallOption) (*StatsResponse, error) {
 	out := new(StatsResponse)
-	err := c.cc.Invoke(ctx, GRPC_GetStats_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Grpc_GetStats_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// GRPCServer is the server API for GRPC service.
-// All implementations must embed UnimplementedGRPCServer
+// GrpcServer is the server API for Grpc service.
+// All implementations must embed UnimplementedGrpcServer
 // for forward compatibility
-type GRPCServer interface {
+type GrpcServer interface {
 	GetBaseURL(context.Context, *ShortUrlRequest) (*UrlResponse, error)
 	Ping(context.Context, *GetPingRequest) (*PingResponse, error)
 	SetURL(context.Context, *UrlRequest) (*UrlResponse, error)
@@ -125,207 +125,207 @@ type GRPCServer interface {
 	GetUserURLS(context.Context, *GetUserURLSRequest) (*UserUrlsResponse, error)
 	DeleteUserURLS(context.Context, *DeleteUserURLSRequest) (*DeleteUserURLSResponse, error)
 	GetStats(context.Context, *GetStatsRequest) (*StatsResponse, error)
-	mustEmbedUnimplementedGRPCServer()
+	mustEmbedUnimplementedGrpcServer()
 }
 
-// UnimplementedGRPCServer must be embedded to have forward compatible implementations.
-type UnimplementedGRPCServer struct {
+// UnimplementedGrpcServer must be embedded to have forward compatible implementations.
+type UnimplementedGrpcServer struct {
 }
 
-func (UnimplementedGRPCServer) GetBaseURL(context.Context, *ShortUrlRequest) (*UrlResponse, error) {
+func (UnimplementedGrpcServer) GetBaseURL(context.Context, *ShortUrlRequest) (*UrlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBaseURL not implemented")
 }
-func (UnimplementedGRPCServer) Ping(context.Context, *GetPingRequest) (*PingResponse, error) {
+func (UnimplementedGrpcServer) Ping(context.Context, *GetPingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (UnimplementedGRPCServer) SetURL(context.Context, *UrlRequest) (*UrlResponse, error) {
+func (UnimplementedGrpcServer) SetURL(context.Context, *UrlRequest) (*UrlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetURL not implemented")
 }
-func (UnimplementedGRPCServer) SetUrls(context.Context, *ShortenBatchRequest) (*ShortenBatchRequest, error) {
+func (UnimplementedGrpcServer) SetUrls(context.Context, *ShortenBatchRequest) (*ShortenBatchRequest, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUrls not implemented")
 }
-func (UnimplementedGRPCServer) GetUserURLS(context.Context, *GetUserURLSRequest) (*UserUrlsResponse, error) {
+func (UnimplementedGrpcServer) GetUserURLS(context.Context, *GetUserURLSRequest) (*UserUrlsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserURLS not implemented")
 }
-func (UnimplementedGRPCServer) DeleteUserURLS(context.Context, *DeleteUserURLSRequest) (*DeleteUserURLSResponse, error) {
+func (UnimplementedGrpcServer) DeleteUserURLS(context.Context, *DeleteUserURLSRequest) (*DeleteUserURLSResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUserURLS not implemented")
 }
-func (UnimplementedGRPCServer) GetStats(context.Context, *GetStatsRequest) (*StatsResponse, error) {
+func (UnimplementedGrpcServer) GetStats(context.Context, *GetStatsRequest) (*StatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStats not implemented")
 }
-func (UnimplementedGRPCServer) mustEmbedUnimplementedGRPCServer() {}
+func (UnimplementedGrpcServer) mustEmbedUnimplementedGrpcServer() {}
 
-// UnsafeGRPCServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GRPCServer will
+// UnsafeGrpcServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GrpcServer will
 // result in compilation errors.
-type UnsafeGRPCServer interface {
-	mustEmbedUnimplementedGRPCServer()
+type UnsafeGrpcServer interface {
+	mustEmbedUnimplementedGrpcServer()
 }
 
-func RegisterGRPCServer(s grpc.ServiceRegistrar, srv GRPCServer) {
-	s.RegisterService(&GRPC_ServiceDesc, srv)
+func RegisterGrpcServer(s grpc.ServiceRegistrar, srv GrpcServer) {
+	s.RegisterService(&Grpc_ServiceDesc, srv)
 }
 
-func _GRPC_GetBaseURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Grpc_GetBaseURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ShortUrlRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GRPCServer).GetBaseURL(ctx, in)
+		return srv.(GrpcServer).GetBaseURL(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GRPC_GetBaseURL_FullMethodName,
+		FullMethod: Grpc_GetBaseURL_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GRPCServer).GetBaseURL(ctx, req.(*ShortUrlRequest))
+		return srv.(GrpcServer).GetBaseURL(ctx, req.(*ShortUrlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GRPC_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Grpc_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPingRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GRPCServer).Ping(ctx, in)
+		return srv.(GrpcServer).Ping(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GRPC_Ping_FullMethodName,
+		FullMethod: Grpc_Ping_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GRPCServer).Ping(ctx, req.(*GetPingRequest))
+		return srv.(GrpcServer).Ping(ctx, req.(*GetPingRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GRPC_SetURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Grpc_SetURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UrlRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GRPCServer).SetURL(ctx, in)
+		return srv.(GrpcServer).SetURL(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GRPC_SetURL_FullMethodName,
+		FullMethod: Grpc_SetURL_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GRPCServer).SetURL(ctx, req.(*UrlRequest))
+		return srv.(GrpcServer).SetURL(ctx, req.(*UrlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GRPC_SetUrls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Grpc_SetUrls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ShortenBatchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GRPCServer).SetUrls(ctx, in)
+		return srv.(GrpcServer).SetUrls(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GRPC_SetUrls_FullMethodName,
+		FullMethod: Grpc_SetUrls_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GRPCServer).SetUrls(ctx, req.(*ShortenBatchRequest))
+		return srv.(GrpcServer).SetUrls(ctx, req.(*ShortenBatchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GRPC_GetUserURLS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Grpc_GetUserURLS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserURLSRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GRPCServer).GetUserURLS(ctx, in)
+		return srv.(GrpcServer).GetUserURLS(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GRPC_GetUserURLS_FullMethodName,
+		FullMethod: Grpc_GetUserURLS_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GRPCServer).GetUserURLS(ctx, req.(*GetUserURLSRequest))
+		return srv.(GrpcServer).GetUserURLS(ctx, req.(*GetUserURLSRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GRPC_DeleteUserURLS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Grpc_DeleteUserURLS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteUserURLSRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GRPCServer).DeleteUserURLS(ctx, in)
+		return srv.(GrpcServer).DeleteUserURLS(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GRPC_DeleteUserURLS_FullMethodName,
+		FullMethod: Grpc_DeleteUserURLS_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GRPCServer).DeleteUserURLS(ctx, req.(*DeleteUserURLSRequest))
+		return srv.(GrpcServer).DeleteUserURLS(ctx, req.(*DeleteUserURLSRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GRPC_GetStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Grpc_GetStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetStatsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GRPCServer).GetStats(ctx, in)
+		return srv.(GrpcServer).GetStats(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GRPC_GetStats_FullMethodName,
+		FullMethod: Grpc_GetStats_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GRPCServer).GetStats(ctx, req.(*GetStatsRequest))
+		return srv.(GrpcServer).GetStats(ctx, req.(*GetStatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// GRPC_ServiceDesc is the grpc.ServiceDesc for GRPC service.
+// Grpc_ServiceDesc is the grpc.ServiceDesc for Grpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var GRPC_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "grpc.gshort.GRPC",
-	HandlerType: (*GRPCServer)(nil),
+var Grpc_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc.gshort.Grpc",
+	HandlerType: (*GrpcServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GetBaseURL",
-			Handler:    _GRPC_GetBaseURL_Handler,
+			Handler:    _Grpc_GetBaseURL_Handler,
 		},
 		{
 			MethodName: "Ping",
-			Handler:    _GRPC_Ping_Handler,
+			Handler:    _Grpc_Ping_Handler,
 		},
 		{
 			MethodName: "SetURL",
-			Handler:    _GRPC_SetURL_Handler,
+			Handler:    _Grpc_SetURL_Handler,
 		},
 		{
 			MethodName: "SetUrls",
-			Handler:    _GRPC_SetUrls_Handler,
+			Handler:    _Grpc_SetUrls_Handler,
 		},
 		{
 			MethodName: "GetUserURLS",
-			Handler:    _GRPC_GetUserURLS_Handler,
+			Handler:    _Grpc_GetUserURLS_Handler,
 		},
 		{
 			MethodName: "DeleteUserURLS",
-			Handler:    _GRPC_DeleteUserURLS_Handler,
+			Handler:    _Grpc_DeleteUserURLS_Handler,
 		},
 		{
 			MethodName: "GetStats",
-			Handler:    _GRPC_GetStats_Handler,
+			Handler:    _Grpc_GetStats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

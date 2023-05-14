@@ -8,11 +8,13 @@ import (
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/peer"
 )
 
 // Ranner.
 type runner interface {
 	Run(string) error
+	Stop() error
 }
 
 // Implements Service.
@@ -36,10 +38,11 @@ type basicService interface {
 }
 
 type server struct {
-	UnimplementedGRPCServer
+	UnimplementedGrpcServer
 	service      apiService
 	basicService basicService
 	config       *core.Config
+	listener     net.Listener
 }
 
 // DeleteUserURLS implements GRPCServerServer.
@@ -69,7 +72,12 @@ func (srv *server) GetBaseURL(ctx context.Context, req *ShortUrlRequest) (*UrlRe
 // GetStats implements GRPCServerServer.
 func (srv *server) GetStats(ctx context.Context, req *GetStatsRequest) (*StatsResponse, error) {
 	haderXReal := http.Header{}
-	haderXReal.Add("X-Real-IP", req.Ip)
+	p, ok := peer.FromContext(ctx)
+	if ok {
+		haderXReal.Add("X-Real-IP", p.Addr.Network())
+	}
+	log.Println(p)
+
 	r := &http.Request{
 		Header: haderXReal,
 	}
@@ -162,10 +170,16 @@ func (srv *server) Run(addresPort string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+	srv.listener = listen
 	s := grpc.NewServer()
 	log.Println("Starting grpc server", addresPort)
-	RegisterGRPCServer(s, srv)
+	RegisterGrpcServer(s, srv)
 	return s.Serve(listen)
+}
+
+// Stop implements runner.
+func (srv *server) Stop() error {
+	return srv.listener.Close()
 }
 
 // Create server.

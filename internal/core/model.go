@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
+	"google.golang.org/grpc/metadata"
 )
 
 // User structure.
@@ -61,6 +62,13 @@ type User struct {
 func (u *User) SetUserIDFromContext(ctx context.Context) error {
 	v, ok := ctx.Value(USERDATA).(User)
 	if !ok {
+		// if GRPC GET IF FROM METADATA
+		data, ok2 := metadata.FromIncomingContext(ctx)
+		if ok2 && data["user"] != nil && len(data["user"]) > 0 {
+			id := data["user"][0]
+			u.ID = id
+			return nil
+		}
 		return errors.New("ERROR COOCIES")
 	}
 	u.ID = v.ID

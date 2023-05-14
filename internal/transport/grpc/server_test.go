@@ -29,10 +29,9 @@ func (mockBasicservice) GetURL(ctx context.Context, link string) (string, error)
 // Ping implements basicService.
 func (mockBasicservice) Ping(ctx context.Context) error {
 	// isErr := ctx.Value("err")
-
-	isErr, ok := metadata.FromIncomingContext(ctx)
-	if ok && isErr["err"] != nil {
-		log.Println(isErr)
+	data, ok := metadata.FromIncomingContext(ctx)
+	if ok && data["err"] != nil {
+		log.Println("metadata", data)
 		return errors.New("test error: ")
 	}
 	return nil
@@ -131,13 +130,14 @@ func Test_server_Ping(t *testing.T) {
 			c := NewGrpcClient(conn)
 			ctx := context.Background()
 			if tt.args.pingErr {
+				// добавляем ошибку для сервиса
 				md := metadata.New(map[string]string{"err": "true"})
 				ctx = metadata.NewOutgoingContext(context.Background(), md)
 			}
 			_, got1 := c.Ping(ctx, &GetPingRequest{})
 
 			if tt.wantErr && got1 == nil {
-				t.Errorf("server.Run() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("server.Ping error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			// time.Sleep(time.Second * 5)
@@ -183,7 +183,10 @@ func Test_server_GetStats(t *testing.T) {
 			}
 			defer conn.Close()
 			c := NewGrpcClient(conn)
-			got, got1 := c.GetStats(context.Background(), &GetStatsRequest{})
+			ctx := context.Background()
+			md := metadata.New(map[string]string{"token": "1234"})
+			ctx = metadata.NewOutgoingContext(context.Background(), md)
+			got, got1 := c.GetStats(ctx, &GetStatsRequest{})
 			log.Println(got, got1)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("server.GetStats error = %v, wantErr %v", err, tt.wantErr)

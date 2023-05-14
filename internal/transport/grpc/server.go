@@ -8,6 +8,7 @@ import (
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 )
 
@@ -171,7 +172,7 @@ func (srv *server) Run(addresPort string) error {
 		log.Fatal(err)
 	}
 	srv.listener = listen
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(unaryInterceptor))
 	log.Println("Starting grpc server", addresPort)
 	RegisterGrpcServer(s, srv)
 	return s.Serve(listen)
@@ -189,4 +190,30 @@ func New(conf *core.Config, s apiService, b basicService) runner {
 		service:      s,
 		basicService: b,
 	}
+}
+
+// Interceptor implements runner.
+func unaryInterceptor(
+	ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	var token string
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		values := md.Get("token")
+		if len(values) > 0 {
+			token = values[0]
+		}
+	}
+	log.Println("===", token)
+	// if len(token) == 0 {
+	// 	return nil, status.Error(codes.Unauthenticated, "missing token")
+	// }
+	// if token != SecretToken {
+	// 	return nil, status.Error(codes.Unauthenticated, "invalid token")
+	// }
+
+	// TODO: здесь дописать код который расшифровывает токен
+	// получаем id юзера из токена и после добавляем его в metadata user
+	md.Set("user", "uniq_user_id")
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	return handler(ctx, req)
 }

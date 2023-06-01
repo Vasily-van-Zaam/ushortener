@@ -2,7 +2,10 @@
 package main
 
 import (
+	"context"
 	"log"
+	"os/signal"
+	"syscall"
 
 	"github.com/caarlos0/env/v6"
 
@@ -13,6 +16,7 @@ import (
 	filestore "github.com/Vasily-van-Zaam/ushortener/internal/storage/file"
 	memorystore "github.com/Vasily-van-Zaam/ushortener/internal/storage/memory"
 	"github.com/Vasily-van-Zaam/ushortener/internal/storage/psql"
+	gshort "github.com/Vasily-van-Zaam/ushortener/internal/transport/grpc"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/handler"
 	"github.com/Vasily-van-Zaam/ushortener/internal/transport/rest/middleware"
@@ -82,13 +86,30 @@ func main() {
 		&cfg,
 		handlers,
 	)
+
+	grpcServer := gshort.New(&cfg, apiService, basicService)
 	if routerError != nil {
 		log.Println("routerError:", routerError)
 	}
 
 	log.Printf("\nBuild version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
-	errorServer := server.Run(cfg.ServerAddress)
-	if errorServer != nil {
-		log.Println("errorServer:", errorServer)
-	}
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		errorServer := server.Run(cfg.ServerAddress)
+		if errorServer != nil {
+			log.Println("errorServer:", errorServer)
+		}
+	}()
+
+	go func() {
+		const grpcAddress = ":3200"
+		grpcErr := grpcServer.Run(grpcAddress)
+		if grpcErr != nil {
+			log.Println("grpc:", grpcErr)
+		}
+	}()
+
+	<-ctx.Done()
 }

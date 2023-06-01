@@ -1,0 +1,102 @@
+//protoc --go_out=. --go_opt=paths=source_relative  --go-grpc_out=./  --go-grpc_opt=paths=source_relative ./internal/transport/grpc/server.proto
+syntax = "proto3";
+
+package grpc.gshort;
+
+option go_package = "grpc/gshort";
+
+message ShortUrlRequest {
+  string short_url = 1;
+}
+
+message UrlRequest {
+  string url = 1;
+}
+message UrlResponse {
+  string result = 1;
+}
+
+// user url 
+message UserUrl {
+  string original_url = 1;
+  string short_url = 2;
+}
+// #request
+message GetUserURLSRequest {
+  string user_id = 1;
+}
+// #response
+// user urls response
+message UserUrlsResponse {
+  repeated UserUrl urls = 1;
+}
+
+// Batch response
+message ShortenBatchRes {
+  string correlation_id = 1;
+  string short_url = 2;
+}
+// Batch request
+message ShortenBatchReq { 
+  string correlation_id = 1;
+  string original_url = 2;
+}
+
+// #response
+// Batch urls response
+message ShortenBatchResponse {
+  repeated ShortenBatchRes urls = 1;
+}
+// #request
+// Batch urls request
+message ShortenBatchRequest { 
+  repeated ShortenBatchReq urls = 1;
+}
+
+// #request
+// Batch delete urls
+message DeleteUserURLSRequest {
+  repeated string urls = 1;
+}
+
+// #request
+// Batch delete urls
+message DeleteUserURLSResponse {
+  string error = 1;
+}
+
+
+
+// #request
+// Get Statistics 
+message GetStatsRequest {
+} 
+
+// #response
+// Statistics response
+message StatsResponse {
+  int32 urls = 1;
+  int32 users = 2;
+} 
+
+// #request
+// Get ping 
+message GetPingRequest  {
+
+}
+// #respose
+// Get ping 
+message PingResponse {
+  string error = 1;
+}
+
+service Grpc {
+  rpc GetBaseURL(ShortUrlRequest) returns (UrlResponse);
+  rpc Ping(GetPingRequest) returns (PingResponse);
+
+  rpc SetURL(UrlRequest) returns (UrlResponse);
+  rpc SetUrls(ShortenBatchRequest) returns (ShortenBatchRequest);
+  rpc GetUserURLS(GetUserURLSRequest) returns (UserUrlsResponse);
+  rpc DeleteUserURLS(DeleteUserURLSRequest) returns (DeleteUserURLSResponse);
+  rpc GetStats(GetStatsRequest) returns (StatsResponse);
+}

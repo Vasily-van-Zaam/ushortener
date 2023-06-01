@@ -6,6 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
+	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
@@ -21,6 +24,34 @@ type API struct {
 	config  *core.Config
 	shorter iShorter
 	core.AUTHService
+}
+
+// APIGetStats implements handler.apiService.
+func (s *API) APIGetStats(r *http.Request) (*core.Stats, error) {
+	ips := r.Header.Get("X-Real-IP")
+	listIPS := strings.Split(ips, ",")
+
+	log.Println("===", listIPS)
+
+	subnet := s.config.TrustedSubnet
+	subnetList := strings.Split(subnet, "/")
+	if len(subnetList) < 1 {
+		return nil, errors.New("error TrustedSubnet")
+	}
+	checkIP := fmt.Sprintf("%v/%v", listIPS[0], subnetList[1])
+	_, checkIPNet, _ := net.ParseCIDR(checkIP)
+
+	_, ipNet, _ := net.ParseCIDR(subnet)
+
+	if checkIPNet == nil {
+		// return s.storage.GetStats(r.Context())
+		return nil, errors.New("403")
+	}
+	if checkIPNet.IP.Equal(ipNet.IP) {
+		return s.storage.GetStats(r.Context())
+	}
+
+	return nil, errors.New("403")
 }
 
 // Create new service API.
@@ -129,7 +160,7 @@ func (s *API) APISetShortenBatch(ctx context.Context, request []*core.RequestAPI
 }
 
 // Delete list urls by list id.
-func (s *API) APIDeleteUserURLS(ctx context.Context, ids []*string) error {
+func (s *API) APIDeleteUserURLS(ctx context.Context, ids []string) error {
 	var user core.User
 	err := user.SetUserIDFromContext(ctx)
 	if err != nil {

@@ -100,6 +100,19 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 	return result, errConflict
 }
 
+// Get statistics count users, count urls.
+func (s *Store) GetStats(ctx context.Context) (*core.Stats, error) {
+	countMapUser := make(map[string]string)
+	countLink := len(s.Data)
+	for _, link := range s.Data {
+		countMapUser[link.UUID] = link.Link
+	}
+	return &core.Stats{
+		Urls:  countLink,
+		Users: len(countMapUser),
+	}, nil
+}
+
 // Close sstore.
 func (s *Store) Close() error {
 	return nil

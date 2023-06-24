@@ -1,51 +1,71 @@
+// Serveice API
 package service
 
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
+	"github.com/Vasily-van-Zaam/ushortener/pkg/shorter"
 )
 
+// Shorter implements for convert id int to string59.
+type iShorter interface {
+	Convert(id string) string
+	UnConvert(id string) string
+}
+
+// Basic service structure.
 type BasicService struct {
-	storage *Storage
+	storage Storage
 	config  *core.Config
+	shorter iShorter
 	core.AUTHService
 }
 
+// Create a new basic service.
 func NewBasic(conf *core.Config, s *Storage, auth *AUTHService) *BasicService {
 	return &BasicService{
-		s,
+		*s,
 		conf,
+		shorter.NewShorter59(),
 		auth,
 	}
 }
 
+// Get URL, response user url.
 func (s *BasicService) GetURL(ctx context.Context, id string) (string, error) {
-	res, err := (*s.storage).GetURL(ctx, id)
+	res, err := s.storage.GetURL(ctx, fmt.Sprint(s.shorter.UnConvert(id)))
 	if err != nil {
-		return "null", err
+		return "", err
 	}
 	return res, nil
 }
-func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) {
 
+// Set new url.
+func (s *BasicService) SetURL(ctx context.Context, link string) (string, error) {
 	user := core.User{}
-	user.FromAny(ctx.Value(core.USERDATA))
-	l := core.Link{
-		Link: link,
-		UUID: user.ID,
+	err := user.SetUserIDFromContext(ctx)
+	if err != nil {
+		return "", err
 	}
-	res, err := (*s.storage).SetURL(ctx, &l)
-	log.Println("====USER ID", user.ID)
+	l := core.Link{
+		Link:    link,
+		UUID:    user.ID,
+		Deleted: false,
+	}
+	res, err := s.storage.SetURL(ctx, &l)
 
 	if err != nil && !errors.Is(err, core.NewErrConflict()) {
-		return "null", err
+		return "", err
 	}
-	return s.config.BaseURL + "/" + res, err
+
+	url := s.config.BaseURL + "/" + s.shorter.Convert(res)
+	return url, err
 }
 
+// Ping service.
 func (s *BasicService) Ping(ctx context.Context) error {
-	return (*s.storage).Ping(ctx)
+	return s.storage.Ping(ctx)
 }

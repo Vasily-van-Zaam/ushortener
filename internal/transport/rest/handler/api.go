@@ -1,3 +1,4 @@
+// Handlers API
 package handler
 
 import (
@@ -12,23 +13,27 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
-type APIService interface {
+// Implements Service.
+type apiService interface {
 	APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 	APISetShortenBatch(ctx context.Context,
-		request []*core.RequestAPIShortenBatch,
-	) ([]*core.ResponseAPIShortenBatch, error)
+		request []*core.RequestAPIShortenBatch) ([]*core.ResponseAPIShortenBatch, error)
 	APIGetUserURLS(ctx context.Context) ([]*core.ResponseAPIUserURL, error)
+	APIDeleteUserURLS(ctx context.Context, ids []string) error
+	APIGetStats(r *http.Request) (*core.Stats, error)
+
 	core.AUTHService
 }
 
-type APIHandler struct {
-	Service *APIService
+// Api structure.
+type apiHandler struct {
+	Service apiService
 	Config  *core.Config
 }
 
-func NewAPI(s APIService, conf *core.Config) *APIHandler {
-	return &APIHandler{
-		Service: &s,
+func newAPI(conf *core.Config, s apiService) *apiHandler {
+	return &apiHandler{
+		Service: s,
 		Config:  conf,
 	}
 }
@@ -42,8 +47,8 @@ func NewAPI(s APIService, conf *core.Config) *APIHandler {
 // @Success		 200  {object} core.ResponseApiShorten
 // @Failure      400  {string} 	"error"
 // @Router       /api/shorten [post].
-func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+func (h *apiHandler) apiSetShorten(w http.ResponseWriter, r *http.Request) {
+	service := h.Service
 
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
@@ -103,8 +108,8 @@ func (h *APIHandler) APISetShorten(w http.ResponseWriter, r *http.Request) {
 // @Success		 200  {object} core.ResponseAPIUserURL
 // @Failure      400  {string} 	"error"
 // @Router       /api/user/urls [get].
-func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+func (h *apiHandler) apiGetUserURLS(w http.ResponseWriter, r *http.Request) {
+	service := h.Service
 
 	res, errAPI := service.APIGetUserURLS(r.Context())
 	if errAPI != nil {
@@ -128,10 +133,43 @@ func (h *APIHandler) APIGetUserURLS(w http.ResponseWriter, r *http.Request) {
 	h.Config.LogResponse(w, r, string(response), http.StatusOK)
 }
 
+// //////////////////////////////////////////////////////////////
+// TODO дописать инструкцию
+// @Tags         API
+// @Summary      Api Delete user urls
+// @Accept       plain
+// @Produce      plain
+// @Success		 202
+// @Failure      400  {string} 	"error"
+// @Router       /api/user/urls [delete].
+func (h *apiHandler) apiDeleteUserURLS(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		return
+	}
+	request := make([]string, 0)
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.Service.APIDeleteUserURLS(r.Context(), request)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error delte urls: %s", err.Error()), http.StatusBadRequest)
+		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusAccepted)
+}
+
 // TODO дописать инструкциюы
 // @Router       /api/shorten/batch [post].
-func (h *APIHandler) APISetShortenBatch(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+func (h *apiHandler) apiSetShortenBatch(w http.ResponseWriter, r *http.Request) {
+	service := h.Service
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -139,7 +177,7 @@ func (h *APIHandler) APISetShortenBatch(w http.ResponseWriter, r *http.Request) 
 		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
-	request := []*core.RequestAPIShortenBatch{}
+	request := make([]*core.RequestAPIShortenBatch, 0, 10)
 	err = json.Unmarshal(body, &request)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error get body: %s", err.Error()), http.StatusBadRequest)
@@ -169,6 +207,33 @@ func (h *APIHandler) APISetShortenBatch(w http.ResponseWriter, r *http.Request) 
 	}
 
 	response, _ := json.Marshal(res)
+	_, err = w.Write(response)
+	if err != nil {
+		log.Println(err)
+	}
+	h.Config.LogResponse(w, r, string(response), http.StatusCreated)
+}
+
+// TODO: add swager
+// Gets statistics urls, users.
+func (h *apiHandler) apiGetStats(w http.ResponseWriter, r *http.Request) {
+	var (
+		resp *core.Stats
+		err  error
+	)
+
+	resp, err = h.Service.APIGetStats(r)
+	if err != nil {
+		if err.Error() == "403" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	response, _ := json.Marshal(resp)
 	_, err = w.Write(response)
 	if err != nil {
 		log.Println(err)

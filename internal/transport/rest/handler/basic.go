@@ -1,3 +1,4 @@
+// Busic handlers
 package handler
 
 import (
@@ -13,22 +14,24 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type BasicService interface {
+// Implements basic service.
+type basicService interface {
 	GetURL(ctx context.Context, link string) (string, error)
 	SetURL(ctx context.Context, link string) (string, error)
 	Ping(ctx context.Context) error
 	core.AUTHService
-	// APISetShorten(ctx context.Context, request *core.RequestAPIShorten) (*core.ResponseAPIShorten, error)
 }
 
-type BasicHandler struct {
-	Service *BasicService
+// Bassic structure.
+type basicHandler struct {
+	Service basicService
 	Config  *core.Config
 }
 
-func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
-	return &BasicHandler{
-		Service: &s,
+// Create basic.
+func newBasic(conf *core.Config, s basicService) *basicHandler {
+	return &basicHandler{
+		Service: s,
 		Config:  conf,
 	}
 }
@@ -43,8 +46,8 @@ func NewBasic(s BasicService, conf *core.Config) *BasicHandler {
 // @Header		 307 {string}  Location "https://some.com/link"
 // @Failure      400  {string} 	"error"
 // @Router       /{id} [get].
-func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+func (h *basicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
+	service := h.Service
 	ctx := r.Context()
 
 	link := chi.URLParam(r, "id")
@@ -52,8 +55,23 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 	res, err := service.GetURL(ctx, strings.TrimSpace(link))
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		// http.Error(w, err.Error(), http.StatusBadRequest)
+		if err.Error() == "deleted" {
+			w.WriteHeader(http.StatusGone)
+			h.Config.LogResponse(w, r, err.Error(), http.StatusGone)
+			_, errW := w.Write(nil)
+			if errW != nil {
+				log.Println(errW)
+			}
+			return
+		}
 		h.Config.LogResponse(w, r, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if res == "" {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -75,8 +93,8 @@ func (h *BasicHandler) GetURL(w http.ResponseWriter, r *http.Request) {
 // @Success		 201  {string}  "http://localhost:8080/1"
 // @Failure      400  {string} 	"error"
 // @Router       / [post].
-func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
-	service := *h.Service
+func (h *basicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
+	service := h.Service
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -115,8 +133,9 @@ func (h *BasicHandler) SetURL(w http.ResponseWriter, r *http.Request) {
 	h.Config.LogResponse(w, r, res, http.StatusCreated)
 }
 
-func (h *BasicHandler) Ping(w http.ResponseWriter, r *http.Request) {
-	if (*h.Service).Ping(r.Context()) != nil {
+// Pig service.
+func (h *basicHandler) ping(w http.ResponseWriter, r *http.Request) {
+	if h.Service.Ping(r.Context()) != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.WriteHeader(http.StatusOK)

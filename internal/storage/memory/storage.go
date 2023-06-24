@@ -1,3 +1,4 @@
+// Memory store
 package memorystore
 
 import (
@@ -9,11 +10,13 @@ import (
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
+// Main structure.
 type Store struct {
 	Config *core.Config
 	Data   []*core.Link
 }
 
+// Creeate new store.
 func New(conf *core.Config) (*Store, error) {
 	return &Store{
 		Config: conf,
@@ -21,10 +24,14 @@ func New(conf *core.Config) (*Store, error) {
 	}, nil
 }
 
+// Get url.
 func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	for _, l := range s.Data {
 		idInt, _ := strconv.Atoi(id)
 		if l.ID == idInt {
+			if l.Deleted {
+				return "", errors.New("deleted")
+			}
 			return l.Link, nil
 		}
 	}
@@ -33,24 +40,30 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	}
 	return "", nil
 }
+
+// Sset url.
 func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	for _, l := range s.Data {
 		if l.Link == link.Link {
-			return fmt.Sprint(l.ID), core.NewErrConflict()
+			url := fmt.Sprint(l.ID)
+			return url, core.NewErrConflict()
 		}
 	}
 	dataLength := len(s.Data) + 1
 	d := core.Link{
-		ID:   dataLength,
-		Link: link.Link,
-		UUID: link.UUID,
+		ID:      dataLength,
+		Link:    link.Link,
+		UUID:    link.UUID,
+		Deleted: false,
 	}
 	s.Data = append(s.Data, &d)
-	return fmt.Sprint(d.ID), nil
+	url := fmt.Sprint(d.ID)
+	return url, nil
 }
 
+// Get list user urls.
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
-	links := []*core.Link{}
+	links := make([]*core.Link, 0, 10)
 	for _, l := range s.Data {
 		if l.UUID == userID {
 			links = append(links, l)
@@ -62,8 +75,9 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 	return links, nil
 }
 
+// Set list user urls.
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
-	result := []*core.Link{}
+	result := make([]*core.Link, 0, 10)
 	var errConflict *core.ErrConflict
 	for _, l := range links {
 		id := len(s.Data) + 1
@@ -85,9 +99,42 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 
 	return result, errConflict
 }
+
+// Get statistics count users, count urls.
+func (s *Store) GetStats(ctx context.Context) (*core.Stats, error) {
+	countMapUser := make(map[string]string)
+	countLink := len(s.Data)
+	for _, link := range s.Data {
+		countMapUser[link.UUID] = link.Link
+	}
+	return &core.Stats{
+		Urls:  countLink,
+		Users: len(countMapUser),
+	}, nil
+}
+
+// Close sstore.
 func (s *Store) Close() error {
 	return nil
 }
+
+// Ping store.
 func (s *Store) Ping(ctx context.Context) error {
 	return nil
 }
+
+// Delete list urls by list id.
+func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	for _, l := range s.Data {
+		for _, idStr := range ids {
+			id, _ := strconv.Atoi(*idStr)
+			if l.ID == id && l.UUID == userID {
+				l.Deleted = true
+			}
+		}
+	}
+	return nil
+}
+
+// For implementations.
+func (s *Store) Update() {}

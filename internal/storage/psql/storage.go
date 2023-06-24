@@ -8,16 +8,30 @@ import (
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// Main structure.
 type Store struct {
 	config *core.Config
-	db     *pgx.Conn
+	db     *pgxpool.Pool // *pgx.Conn
 }
 
+// Create store.
 func New(conf *core.Config) (*Store, error) {
 	ctx := context.Background()
-	db, err := pgx.Connect(context.Background(), conf.DataBaseDNS)
+
+	config, err := pgxpool.ParseConfig(conf.DataBaseDNS)
+	if err != nil {
+		panic(err)
+	}
+	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		// do something with every new connection
+		return nil
+	}
+
+	db, err := pgxpool.NewWithConfig(context.Background(), config)
+
 	if err != nil {
 		panic(err)
 	}
@@ -36,6 +50,7 @@ func New(conf *core.Config) (*Store, error) {
 		link TEXT UNIQUE,
 		short_link char(255) UNIQUE,
 		user_id INTEGER,
+		deleted boolean,
 		FOREIGN KEY (user_id) REFERENCES users (id)
 	);`)
 
@@ -53,17 +68,21 @@ func New(conf *core.Config) (*Store, error) {
 	}, nil
 }
 
+// Get utl.
 func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	res := s.db.QueryRow(ctx, `
-	SELECT * FROM links WHERE id=$1;
+	SELECT id,uuid,link,deleted  FROM links WHERE id=$1;
 	`, id)
 	linkDB := core.Link{}
-	err := res.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UserID)
+	err := res.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.Deleted)
 	if err != nil {
 		log.Println("errorSelectSqlLiteGet", err, linkDB)
 	}
 
 	if linkDB.ID != 0 {
+		if linkDB.Deleted {
+			return "", errors.New("deleted")
+		}
 		return linkDB.Link, nil
 	}
 	if id == "" {
@@ -72,21 +91,23 @@ func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
 	return "", nil
 }
 
+// Set url.
 func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	var resID any
 	searchLink := s.db.QueryRow(ctx, `
-	SELECT * FROM links WHERE link=$1;
+	SELECT id,uuid,link,user_id FROM links WHERE link=$1;
 	`, link.Link)
 
 	linkDB := core.Link{}
 
-	err := searchLink.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UserID)
+	err := searchLink.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.UserID)
 	if err != nil {
 		log.Println("errorSelectSqlLitePost", err, linkDB)
 	}
 
 	if linkDB.ID != 0 {
-		return fmt.Sprint(linkDB.ID), core.NewErrConflict()
+		url := fmt.Sprint(linkDB.ID)
+		return url, core.NewErrConflict()
 	}
 
 	tx, err := s.db.Begin(ctx)
@@ -113,10 +134,11 @@ func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
 	if errCommit != nil {
 		log.Println("errCommit:", errCommit)
 	}
-
-	return fmt.Sprint(resID), nil
+	url := fmt.Sprint(resID)
+	return url, nil
 }
 
+// Get list user urls.
 func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
 	// userID = "4f744217-a3cb-4bad-9c76-6880e41d336f"
 	query, err := s.db.Query(ctx, `
@@ -126,7 +148,7 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 		log.Println("error query", err)
 	}
 	defer query.Close()
-	res := []*core.Link{}
+	res := make([]*core.Link, 0, 10)
 	for query.Next() {
 		linkDB := &core.Link{}
 		errScan := query.Scan(&linkDB.ID, &linkDB.Link)
@@ -136,13 +158,13 @@ func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, e
 		}
 		res = append(res, linkDB)
 	}
-	// log.Println(query)
 	return res, nil
 }
 
+// Set list urls.
 func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
 	var errConflict *core.ErrConflict
-	response := []*core.Link{}
+	response := make([]*core.Link, 0)
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -155,12 +177,12 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 	}()
 
 	for _, l := range links {
-		searchLink := s.db.QueryRow(ctx, `
-			SELECT * FROM links WHERE link=$1;
+		searchLink := tx.QueryRow(ctx, `
+			SELECT id,uuid,link,user_id,deleted FROM links WHERE link=$1;
 		`, l.Link)
 
 		linkDB := core.Link{}
-		err = searchLink.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.ShortLink, &linkDB.UserID)
+		err = searchLink.Scan(&linkDB.ID, &linkDB.UUID, &linkDB.Link, &linkDB.UserID, &linkDB.Deleted)
 		if err != nil {
 			log.Println("errorSelectSqlLitePost", err, linkDB)
 		}
@@ -169,7 +191,7 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 			response = append(response, &linkDB)
 		} else {
 			errInsert := tx.QueryRow(ctx, `
-				INSERT INTO links (link, uuid) VALUES ($1, $2) RETURNING id;
+				INSERT INTO links (link,uuid) VALUES ($1,$2) RETURNING id;
 			`, l.Link, l.UUID,
 			).Scan(&linkDB.ID)
 			if errInsert != nil {
@@ -186,14 +208,89 @@ func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.L
 	return response, errConflict
 }
 
-func (s *Store) Close() error {
-	return s.db.Close(context.Background())
+// Delete list urls by list id.
+func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	ctx1 := context.Background()
+	tx, err := s.db.Begin(ctx1)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		errRllback := tx.Rollback(ctx1)
+		if errRllback != nil {
+			log.Print("errRllback:", errRllback)
+		}
+	}()
+
+	listIds := ""
+	for i, id := range ids {
+		if i == len(ids)-1 {
+			listIds += *id
+		} else {
+			listIds += *id + ","
+		}
+	}
+
+	_, err = tx.Exec(ctx1, `
+		update links
+		set deleted = true
+		where id in (`+listIds+`) and uuid = $1`,
+		userID,
+	)
+
+	if err != nil {
+		log.Println("errExec:", err)
+		return err
+	}
+
+	err = tx.Commit(ctx1)
+	if err != nil {
+		log.Println("errCommit:", err)
+		return err
+	}
+
+	return nil
 }
 
+// Get statistics count users, count urls.
+func (s *Store) GetStats(ctx context.Context) (*core.Stats, error) {
+	row := s.db.QueryRow(ctx, `--sql
+	select count(link) from links`,
+	)
+	countUrls := 0
+	err := row.Scan(&countUrls)
+	if err != nil {
+		return nil, err
+	}
+	row = s.db.QueryRow(ctx, `--sql
+	select count(distinct uuid) from links;`,
+	)
+	countUsers := 0
+	err = row.Scan(&countUsers)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Stats{
+		Urls:  countUrls,
+		Users: countUsers,
+	}, nil
+}
+
+// Close store.
+func (s *Store) Close() error {
+	s.db.Close()
+	return nil // s.db.Close(context.Background())
+}
+
+// Ping store.
 func (s *Store) Ping(ctx context.Context) error {
-	err := s.db.PgConn().CheckConn()
+	err := s.db.Ping(ctx) // PgConn().CheckConn()
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// For implements.
+func (s *Store) Update() {}

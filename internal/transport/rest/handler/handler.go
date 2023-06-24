@@ -1,36 +1,35 @@
+// List Handlers
 package handler
 
 import (
 	// _ "github.com/Vasily-van-Zaam/ushortener/docs".
 
+	"net/http"
+
+	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-type Handlers struct {
-	basic *BasicHandler
-	api   *APIHandler
-	/// other handlers
-}
+// Create hadlers.
+func New(conf *core.Config, b basicService, a apiService, m ...func(http.Handler) http.Handler) *chi.Mux {
+	r := chi.NewMux()
+	r.Use(m...)
+	basic := newBasic(conf, b)
+	api := newAPI(conf, a)
 
-func NewHandlers(basic *BasicHandler, api *APIHandler) *Handlers {
-	return &Handlers{
-		basic: basic,
-		api:   api,
-	}
-}
-
-func (h *Handlers) InitAPI(r *chi.Mux) {
-	// DOCS
 	r.Get("/swagger-docs/*", httpSwagger.Handler())
 	// BASIC
-	r.Get("/", h.basic.GetURL)
-	r.Get("/ping", h.basic.Ping)
-	r.Get("/{id}", h.basic.GetURL)
-	r.Post("/", h.basic.SetURL)
+	r.Get("/", basic.GetURL)
+	r.Get("/ping", basic.ping)
+	r.Get("/{id}", basic.GetURL)
+	r.Post("/", basic.SetURL)
 
 	// API
-	r.Post("/api/shorten", h.api.APISetShorten)
-	r.Get("/api/user/urls", h.api.APIGetUserURLS)
-	r.Post("/api/shorten/batch", h.api.APISetShortenBatch)
+	r.Post("/api/shorten", api.apiSetShorten)
+	r.Get("/api/user/urls", api.apiGetUserURLS)
+	r.Delete("/api/user/urls", api.apiDeleteUserURLS)
+	r.Post("/api/shorten/batch", api.apiSetShortenBatch)
+	r.Get("/api/internal/stats", api.apiGetStats)
+	return r
 }

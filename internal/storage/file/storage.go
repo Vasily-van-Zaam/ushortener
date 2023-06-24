@@ -1,3 +1,4 @@
+// File store.
 package filestore
 
 import (
@@ -9,28 +10,29 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/Vasily-van-Zaam/ushortener/internal/core"
 )
 
+// Event structure for file.
 type Event struct {
 	file    *os.File
 	scanner *bufio.Scanner
 	writer  *bufio.Writer
 }
 
+// Main structure.
 type Store struct {
 	Config *core.Config
+	Data   []*core.Link
+	saved  chan any
 }
 
-func New(conf *core.Config) (*Store, error) {
-	return &Store{
-		Config: conf,
-	}, nil
-}
-
+// Open files.
 func (s *Store) newOpenFile() (*Event, error) {
 	file, err := os.OpenFile(s.Config.Filestore, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
+
 	if err != nil {
 		return nil, err
 	}
@@ -41,105 +43,24 @@ func (s *Store) newOpenFile() (*Event, error) {
 	}, nil
 }
 
-func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
-	data, err := s.newOpenFile()
-	if err != nil {
-		return "", err
-	}
-	line := 0
-	for data.scanner.Scan() {
-		d := strings.Split(data.scanner.Text(), ",")
-		log.Println(d, line)
-		if len(d) >= 1 {
-			if d[0] == id {
-				return d[1], nil
-			}
-		}
-		line++
-	}
-	defer data.file.Close()
-
-	if id == "" {
-		return "", errors.New("not Found")
-	}
-	return "", nil
-}
-func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
-	data, err := s.newOpenFile()
-	if err != nil {
-		return "", err
-	}
-	line := 0
-	lastElementID := 0
-	for data.scanner.Scan() {
-		d := strings.Split(data.scanner.Text(), ",")
-		log.Println(d, line)
-		if len(d) >= 1 {
-			if d[1] == link.Link {
-				return fmt.Sprint(d[0]), core.NewErrConflict()
-			}
-		}
-		lastElementID, _ = strconv.Atoi(d[0])
-		line++
-	}
-	_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+1, ",", link.Link, ",", link.UUID)))
-	if errWriteData != nil {
-		return "", errWriteData
-	}
-	errWriteByte := data.writer.WriteByte('\n')
-	if errWriteByte != nil {
-		return "", errWriteByte
-	}
-	err = data.writer.Flush()
-	if err != nil {
-		return "", err
-	}
-	defer data.file.Close()
-	return fmt.Sprint(lastElementID + 1), nil
-}
-
-func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
-	data, err := s.newOpenFile()
-	if err != nil {
-		return nil, err
-	}
-	links := []*core.Link{}
-	line := 0
-	for data.scanner.Scan() {
-		d := strings.Split(data.scanner.Text(), ",")
-		if len(d) != 0 {
-			if d[2] == userID {
-				id, _ := strconv.Atoi(d[0])
-				links = append(links, &core.Link{
-					ID:   id,
-					Link: d[1],
-					UUID: d[2],
-				})
-			}
-		}
-		line++
-	}
-	defer data.file.Close()
-
-	if userID == "" {
-		return nil, errors.New("not Found")
-	}
-	return links, nil
-}
-
+// Scan content file.
 func scan(data *Event) []*core.Link {
-	res := []*core.Link{}
+	res := make([]*core.Link, 0)
 	line := 0
 	lastElementID := 0
 	for data.scanner.Scan() {
 		d := strings.Split(data.scanner.Text(), ",")
-		log.Println(d, line)
 		lastElementID, _ = strconv.Atoi(d[0])
+		deleted := false
+		if d[3] == "true" {
+			deleted = true
+		}
 		if len(d) >= 1 {
 			res = append(res, &core.Link{
-				ID:   lastElementID,
-				UUID: d[2],
-				Link: d[1],
+				ID:      lastElementID,
+				UUID:    d[2],
+				Link:    d[1],
+				Deleted: deleted,
 			})
 		}
 		line++
@@ -147,56 +68,172 @@ func scan(data *Event) []*core.Link {
 	return res
 }
 
-func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
-	data, err := s.newOpenFile()
+// New store.
+func New(conf *core.Config) (*Store, error) {
+	s := &Store{
+		Config: conf,
+		Data:   make([]*core.Link, 0),
+		saved:  make(chan any),
+	}
+
+	e, err := s.newOpenFile()
 	if err != nil {
 		return nil, err
 	}
-	dataList := scan(data)
-	result := []*core.Link{}
-	count := 0
+	defer e.file.Close()
+	s.Data = scan(e)
+	return s, nil
+}
+
+// Get url.
+func (s *Store) GetURL(ctx context.Context, id string) (string, error) {
+	for _, l := range s.Data {
+		idInt, _ := strconv.Atoi(id)
+		if l.ID == idInt {
+			if l.Deleted {
+				return "", errors.New("deleted")
+			}
+			return l.Link, nil
+		}
+	}
+	if id == "" {
+		return "", errors.New("not Found")
+	}
+	return "", nil
+}
+
+// Set url.
+func (s *Store) SetURL(ctx context.Context, link *core.Link) (string, error) {
+	for _, l := range s.Data {
+		if l.Link == link.Link {
+			url := fmt.Sprint(l.ID)
+			return url, core.NewErrConflict()
+		}
+	}
+	dataLength := len(s.Data) + 1
+	d := core.Link{
+		ID:      dataLength,
+		Link:    link.Link,
+		UUID:    link.UUID,
+		Deleted: false,
+	}
+	s.Data = append(s.Data, &d)
+	url := fmt.Sprint(d.ID)
+	s.saved <- nil
+	return url, nil
+}
+
+// Get list user urls.
+func (s *Store) GetUserURLS(ctx context.Context, userID string) ([]*core.Link, error) {
+	links := make([]*core.Link, 0, 10)
+	for _, l := range s.Data {
+		if l.UUID == userID {
+			links = append(links, l)
+		}
+	}
+	if userID == "" {
+		return nil, errors.New("not Found")
+	}
+	return links, nil
+}
+
+// Set list user urls.
+func (s *Store) SetURLSBatch(ctx context.Context, links []*core.Link) ([]*core.Link, error) {
+	result := make([]*core.Link, 0, 10)
 	var errConflict *core.ErrConflict
 	for _, l := range links {
+		id := len(s.Data) + 1
 		exists := false
-		lastElementID := 0
-		for _, ls := range dataList {
+		for _, ls := range s.Data {
 			if ls.Link == l.Link {
+				l.ID = ls.ID
 				exists = true
-				result = append(result, ls)
+				errConflict = core.NewErrConflict()
+				break
 			}
-			lastElementID = ls.ID
 		}
-
-		if exists {
-			errConflict = core.NewErrConflict()
-			continue
+		if !exists {
+			l.ID = id
+			s.Data = append(s.Data, l)
 		}
-		count++
-		_, errWriteData := data.writer.Write([]byte(fmt.Sprint(lastElementID+count, ",", l.Link, ",", l.UUID)))
-		if errWriteData != nil {
-			return nil, errWriteData
-		}
-		errWriteByte := data.writer.WriteByte('\n')
-		if errWriteByte != nil {
-			return nil, errWriteByte
-		}
-		err = data.writer.Flush()
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, &core.Link{
-			ID:   lastElementID + count,
-			Link: l.Link,
-			UUID: l.UUID,
-		})
+		result = append(result, l)
 	}
+	s.saved <- nil
 	return result, errConflict
 }
 
+// Update data.
+func (s *Store) Update() {
+	for save := range s.saved {
+		wg := &sync.WaitGroup{}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			log.Println("SAVE", save)
+			errorSaved := make(chan *error)
+			okSaved := make(chan any)
+			dataLines := ""
+			for _, l := range s.Data {
+				dataLines += fmt.Sprint(l.ID, ",", l.Link, ",", l.UUID, ",", l.Deleted, "\n")
+			}
+			go func() {
+				err := os.WriteFile(s.Config.Filestore, []byte(dataLines), 0600)
+				if err != nil {
+					errorSaved <- &err
+					return
+				}
+				okSaved <- nil
+			}()
+			select {
+			case err := <-errorSaved:
+				log.Println("ERROR SAVED", err)
+				return
+			case ok := <-okSaved:
+				log.Println("SAVED OK", ok)
+
+				return
+			}
+		}()
+		wg.Wait()
+	}
+}
+
+// Get statistics count users, count urls.
+func (s *Store) GetStats(ctx context.Context) (*core.Stats, error) {
+	countMapUser := make(map[string]string)
+	countLink := len(s.Data)
+
+	for _, link := range s.Data {
+		countMapUser[link.UUID] = link.Link
+	}
+	return &core.Stats{
+		Urls:  countLink,
+		Users: len(countMapUser),
+	}, nil
+}
+
+// Close Store.
 func (s *Store) Close() error {
 	return nil
 }
 
+// Ping store.
 func (s *Store) Ping(ctx context.Context) error {
+	return nil
+}
+
+// Delete lisr url by id.
+func (s *Store) DeleteURLSBatch(ctx context.Context, ids []*string, userID string) error {
+	for _, l := range s.Data {
+		for _, idStr := range ids {
+			id, _ := strconv.Atoi(*idStr)
+			if l.ID == id && l.UUID == userID {
+				l.Deleted = true
+			}
+		}
+	}
+	s.saved <- nil
+
 	return nil
 }
